@@ -1,0 +1,483 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  //output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  PUBLISHER
+}
+
+model User {
+  id            String          @id @default(cuid())
+  email         String          @unique
+  password      String
+  name          String
+  role          Role            @default(USER)
+  emailVerified Boolean         @default(false)
+  reviewCount   Int             @default(0)
+  followerCount Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  // authen
+  otp           Otp[]
+  trustedDevice TrustedDevice[]
+  notification  Notification[]
+  //follower
+  followers        Follow[]            @relation("Following")
+  following        Follow[]            @relation("Follower")
+
+  // order
+  userAddress   UserAddress[]
+  order         Order[]
+  affiliate     Affiliate[]
+  cart          Cart[]
+  // review/comment
+  rating        Rating[]
+  review        Review[]
+  comment       Comment[]
+  likes         LikeReviews[]
+  // data
+  shelf Shelf[]
+  bookTagPreference BookTagPreference[]
+
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  code      String
+  expiresAt DateTime
+  type      OtpType
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+}
+
+enum OtpType {
+  LOGIN
+  DELETE_USER
+}
+
+model TrustedDevice {
+  id        String   @id @default(cuid())
+  ipAddress String
+  userAgent String
+  lastLogin DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  @@unique([userId, ipAddress, userAgent])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  referenceId String
+  type        NotificationType
+  isRead      Boolean          @default(false)
+  recipient   User             @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+
+  @@index([recipientId])
+}
+
+enum NotificationType {
+  NEW_REVIEW
+  NEW_FOLLOWER
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  follower    User @relation("Follower", fields: [followerId], references: [id])
+  following   User @relation("Following", fields: [followingId], references: [id])
+
+  @@id([followerId, followingId])
+}
+
+// ----------------------------------------
+// Books & Related Models
+// ----------------------------------------
+
+model Book {
+  id            String  @id @default(cuid())
+  searchKey     String  @unique
+  title         String
+  description   String? @db.Text
+  isbn          String? @unique
+  publishedYear Int?
+  coverImage    String?
+
+  // --- Denormalized Fields ---
+  ratingCount   Int   @default(0)
+  reviewCount   Int   @default(0)
+  averageRating Float @default(0)
+
+  // --- เพิ่ม Field สำหรับนับจำนวนดาวแต่ละประเภท ---
+  oneStarCount   Int @default(0)
+  twoStarCount   Int @default(0)
+  threeStarCount Int @default(0)
+  fourStarCount  Int @default(0)
+  fiveStarCount  Int @default(0)
+  // ---------------------------------------------
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // order
+  product   Product[]
+  // interaction 
+  rating    Rating[]
+  review    Review[]
+  // data
+  bookTag   BookTag[]
+  shelf Shelf[]
+  
+
+  Author   Author? @relation(fields: [authorId], references: [id])
+  authorId String?
+
+  // Relations
+  @@index([title])
+}
+
+model Author {
+  id          String   @id @default(cuid())
+  name        String
+  bio         String?
+  profileImage String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  book Book[]
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  bookTag     BookTag[]
+  bookTagPreference BookTagPreference[]
+}
+
+model BookTag {
+  createdAt DateTime @default(now())
+
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id])
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([bookId, tagId])
+}
+
+enum ShelfType {
+  WISHLIST
+  TO_READ
+  CURRENTLY_READING
+  READ
+  FAVORITE
+}
+
+
+model Shelf {
+  addedAt DateTime @default(now())
+
+  ShelfType ShelfType
+
+  bookId  String
+  book    Book     @relation(fields: [bookId], references: [id])
+  userId String
+  user   User    @relation(fields: [userId], references: [id])
+
+  @@id([bookId, userId  ,ShelfType])
+}
+
+model BookTagPreference {
+  id         String   @id @default(cuid())
+  userId     String
+  tagId      String
+  user       User     @relation(fields: [userId], references: [id])
+  tag        Tag      @relation(fields: [tagId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, tagId])
+}
+
+
+
+// ----------------------------------------
+// Interaction Models
+// ----------------------------------------
+
+model Rating {
+  id        String   @id @default(cuid())
+  rating    Int
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  reviewPoint Int
+  isApproved  Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  comments Comment[]
+  likes    LikeReviews[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  isApproved Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  reviewId String
+  review   Review @relation(fields: [reviewId], references: [id])
+}
+
+model LikeReviews {
+  userId    String
+  reviewId  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // --- Relations ---
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@id([userId, reviewId]) // Composite key ป้องกัน user คนเดียวไลก์รีวิวเดิมซ้ำ
+}
+
+// ----------------------------------------
+// Product Cart Order Payment section
+// ----------------------------------------
+
+enum ProductType {
+  PAPERBACK
+  HARDCOVER
+  BOXSET
+  MERCHANDISE
+}
+
+model Product {
+  id    String  @id @default(cuid())
+  sku   String
+  // vvv-wwww-xxxx-yyy-zz [หมวดหมู่]-[รหัสผู้แต่ง]-[รหัสซีรีส์]-[ลำดับเล่ม]-[รูปแบบ] eg. 
+  // One Piece เล่ม 1 โดย Oda : MAN-ODA-ONEP-001-PB
+  // Atomic Habits (Business) โดย Clear : BIZ-CLEA-ATOM-000-PB
+  // The Lord of the Rings (Fiction) : FIC-TOLK-LOTR-000-HC
+  price Decimal
+
+  stockQuantity Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  productType ProductType
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  bookId String? @unique
+  book   Book?   @relation(fields: [bookId], references: [id])
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items CartItem[]
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model CartItem {
+  id       String   @id @default(cuid())
+  quantity Int
+  addedAt  DateTime @default(now())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  cartId    String
+  cart      Cart    @relation(fields: [cartId], references: [id])
+
+  @@unique([cartId, productId])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  totalAmount Decimal
+  isAffiliate Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  status OrderStatus @default(PENDING)
+
+  items       OrderItem[]
+  commissions Commission[]
+  payment     Payment[]
+
+  affiliateId String?
+  affiliate   Affiliate? @relation(fields: [affiliateId], references: [id])
+  addressId   String
+  address     UserAddress @relation(fields: [addressId], references: [id])
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  quantity     Int
+  pricePerUnit Decimal
+  createdAt    DateTime @default(now())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  @@unique([orderId, productId])
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  CREDIT_CARD
+  PROMPTPAY
+  BANK_TRANSFER
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  amount         Decimal
+  paymentDate    DateTime @default(now())
+  transactionId  String?  @unique
+  paymentData    Json?
+  userProviderId String?
+
+  status        PaymentStatus @default(PENDING)
+  paymentMethod PaymentType
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+}
+
+model UserAddress {
+  id           String   @id @default(cuid())
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  province     String
+  postalCode   String
+  country      String
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  order Order[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+// ----------------------------------------
+// Affiliate Models
+// ----------------------------------------
+
+enum AffiliateStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum PayoutMethodType {
+  BANK_TRANSFER
+  PAYPAL
+}
+
+model Affiliate {
+  id             String   @id @default(cuid())
+  affiliateCode  String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  accountDetails Json // เลขบัญชีธนาคาร , ชื่อธนาคาร
+
+  status     AffiliateStatus  @default(PENDING)
+  methodType PayoutMethodType
+
+  commissions Commission[]
+  order       Order[]
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model Commission {
+  id               String   @id @default(cuid())
+  commissionAmount Decimal
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  status CommissionStatus @default(PENDING)
+
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+  orderId     String    @unique
+  order       Order     @relation(fields: [orderId], references: [id])
+}
