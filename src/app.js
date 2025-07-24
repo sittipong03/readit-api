@@ -10,7 +10,7 @@ import userRoute from "./routes/user.route.js";
 import bookRoute from "./routes/book.route.js";
 import reviewRoute from "./routes/review.route.js";
 import cartRoute from "./routes/cart.route.js";
-import orederRoute from "./routes/order.route.js";
+import orderRoute from "./routes/order.route.js";
 import affiliateRoute from "./routes/affiliate.route.js";
 
 const app = express();
@@ -29,7 +29,7 @@ app.use("/api/user", userRoute)
 app.use("/api/book", bookRoute)
 app.use("/api/review", reviewRoute)
 app.use("/api/cart", cartRoute)
-app.use("/api/order", orederRoute)
+app.use("/api/order", orderRoute)
 app.use("/api/affiliate", affiliateRoute)
 
 
