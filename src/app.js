@@ -22,17 +22,15 @@ app.use(
 );
 
 app.use(express.json());
-app.use(morgan('dev'))
+app.use(morgan("dev"));
 
 app.use("/api/auth", authRoute);
-app.use("/api/user", userRoute)
-app.use("/api/book", bookRoute)
-app.use("/api/review", reviewRoute)
-app.use("/api/cart", cartRoute)
-app.use("/api/order", orederRoute)
-app.use("/api/affiliate", affiliateRoute)
-
-
+app.use("/api/user", userRoute);
+app.use("/api/book", bookRoute);
+app.use("/api/review", reviewRoute);
+app.use("/api/cart", cartRoute);
+app.use("/api/order", orederRoute);
+app.use("/api/affiliate", affiliateRoute);
 
 //404
 app.use(notFoundMiddleware);
