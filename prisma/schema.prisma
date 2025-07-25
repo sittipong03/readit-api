@@ -112,10 +112,10 @@ model Follow {
 // ----------------------------------------
 
 model Book {
-  id            String  @id @default(cuid())
-  searchKey     String  @unique
-  title         String
-  description   String? @db.Text
+  id           String  @id @default(cuid())
+  searchKey    String  @unique
+  title        String
+  description  String? @db.Text
   aiSuggestion String? @db.Text
 
   // --- Denormalized Fields ---
@@ -141,7 +141,7 @@ model Book {
   // data
   bookTag   BookTag[]
   shelf     Shelf[]
-  edition Edition[]
+  edition   Edition[]
 
   Author   Author? @relation(fields: [authorId], references: [id])
   authorId String?
@@ -151,24 +151,23 @@ model Book {
 }
 
 model Edition {
-  id            String  @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   isbn          String? @unique
   pages         Int
   publishedYear Int?
   coverImage    String?
 
   // Flag สำหรับระบุว่าเป็น Edition ล่าสุด เพื่อนำไปแสดงผลเป็นหลัก
-  isLatest      Boolean @default(false)
+  isLatest Boolean @default(false)
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // --- Relations ---
   // เชื่อมกลับไปยัง "ผลงาน" หลัก
   book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
   bookId String
-
 
   @@index([bookId])
 }
@@ -176,7 +175,7 @@ model Edition {
 model Author {
   id           String   @id @default(cuid())
   name         String   @unique()
-  bio          String? @db.Text
+  bio          String?  @db.Text
   profileImage String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -257,7 +256,7 @@ model Rating {
 model Review {
   id          String   @id @default(cuid())
   title       String
-  content     String @db.Text
+  content     String   @db.Text
   reviewPoint Int
   isApproved  Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -276,7 +275,7 @@ model Review {
 
 model Comment {
   id         String   @id @default(cuid())
-  content    String @db.Text
+  content    String   @db.Text
   isApproved Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
