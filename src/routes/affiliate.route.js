@@ -1,8 +1,9 @@
-import express from "express"
-import * as affiliateController from "../controllers/affiliate.controller.js"
+import express from "express";
+import * as affiliateController from "../controllers/affiliate.controller.js";
 
-const affiliateRoute = express.Router()
+const affiliateRoute = express.Router();
 
-affiliateRoute.get('/' ,affiliateController.testGet)
+affiliateRoute.post("/", affiliateController.registerAffiliate);
+affiliateRoute.get("/:userId", affiliateController.getSelf);
 
-export default affiliateRoute
+export default affiliateRoute;

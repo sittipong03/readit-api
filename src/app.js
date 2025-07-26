@@ -12,7 +12,7 @@ import reviewRoute from "./routes/review.route.js";
 import cartRoute from "./routes/cart.route.js";
 import orderRoute from "./routes/order.route.js";
 import affiliateRoute from "./routes/affiliate.route.js";
-
+import followerRoute from "./routes/follower.route.js";
 const app = express();
 
 app.use(
@@ -31,6 +31,7 @@ app.use("/api/review", reviewRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/order", orderRoute);
 app.use("/api/affiliate", affiliateRoute);
+app.use("/api", followerRoute);
 
 //404
 app.use(notFoundMiddleware);
