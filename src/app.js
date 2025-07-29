@@ -11,7 +11,7 @@ import bookRoute from "./routes/book.route.js";
 import reviewRoute from "./routes/review.route.js";
 import commentRoute from "./routes/comment.route.js";
 import cartRoute from "./routes/cart.route.js";
-import orederRoute from "./routes/order.route.js";
+import orderRoute from "./routes/order.route.js";
 import affiliateRoute from "./routes/affiliate.route.js";
 
 const app = express();
@@ -23,7 +23,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(morgan('dev'))
+app.use(morgan("dev"));
 
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute)

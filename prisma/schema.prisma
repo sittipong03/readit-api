@@ -38,8 +38,14 @@ model User {
   //follower
   followers     Follow[]        @relation("Following")
   following     Follow[]        @relation("Follower")
+  followers     Follow[]        @relation("Following")
+  following     Follow[]        @relation("Follower")
 
   // order
+  userAddress       UserAddress[]
+  order             Order[]
+  affiliate         Affiliate[]
+  cart              Cart[]
   userAddress       UserAddress[]
   order             Order[]
   affiliate         Affiliate[]
@@ -49,7 +55,12 @@ model User {
   review            Review[]
   comment           Comment[]
   likes             LikeReviews[]
+  rating            Rating[]
+  review            Review[]
+  comment           Comment[]
+  likes             LikeReviews[]
   // data
+  shelf             Shelf[]
   shelf             Shelf[]
   bookTagPreference BookTagPreference[]
 }
@@ -103,6 +114,8 @@ model Follow {
   followingId String
   follower    User   @relation("Follower", fields: [followerId], references: [id])
   following   User   @relation("Following", fields: [followingId], references: [id])
+  follower    User   @relation("Follower", fields: [followerId], references: [id])
+  following   User   @relation("Following", fields: [followingId], references: [id])
 
   @@id([followerId, followingId])
 }
@@ -112,13 +125,11 @@ model Follow {
 // ----------------------------------------
 
 model Book {
-  id            String  @id @default(cuid())
-  searchKey     String  @unique
-  title         String
-  description   String? @db.Text
-  isbn          String? @unique
-  publishedYear Int?
-  coverImage    String?
+  id           String  @id @default(cuid())
+  searchKey    String  @unique
+  title        String
+  description  String? @db.Text
+  aiSuggestion String? @db.Text
 
   // --- Denormalized Fields ---
   ratingCount   Int   @default(0)
@@ -143,19 +154,48 @@ model Book {
   // data
   bookTag   BookTag[]
   shelf     Shelf[]
+  shelf     Shelf[]
+  edition   Edition[]
 
   Author   Author? @relation(fields: [authorId], references: [id])
   authorId String?
 
   // Relations
-  @@index([title])
+  @@index([title, searchKey])
+}
+
+model Edition {
+  id String @id @default(cuid())
+
+  isbn          String? @unique
+  pages         Int
+  publishedYear Int?
+  coverImage    String?
+
+  // Flag สำหรับระบุว่าเป็น Edition ล่าสุด เพื่อนำไปแสดงผลเป็นหลัก
+  isLatest Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // --- Relations ---
+  // เชื่อมกลับไปยัง "ผลงาน" หลัก
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+
+  @@index([bookId])
 }
 
 model Author {
   id           String   @id @default(cuid())
   name         String
   bio          String?
+  id           String   @id @default(cuid())
+  name         String   @unique()
+  bio          String?  @db.Text
   profileImage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -163,6 +203,12 @@ model Author {
 }
 
 model Tag {
+  id                String              @id @default(cuid())
+  name              String              @unique
+  description       String?
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  bookTag           BookTag[]
   id                String              @id @default(cuid())
   name              String              @unique
   description       String?
@@ -179,13 +225,16 @@ model BookTag {
   book   Book   @relation(fields: [bookId], references: [id])
   tagId  String
   tag    Tag    @relation(fields: [tagId], references: [id])
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id])
+  tagId  String
+  tag    Tag    @relation(fields: [tagId], references: [id])
 
   @@id([bookId, tagId])
 }
 
 enum ShelfType {
-  WISHLIST
-  TO_READ
+  WISHREAD
   CURRENTLY_READING
   READ
   FAVORITE
@@ -198,13 +247,23 @@ model Shelf {
 
   bookId String
   book   Book   @relation(fields: [bookId], references: [id])
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id])
   userId String
   user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
+  @@id([bookId, userId, ShelfType])
   @@id([bookId, userId, ShelfType])
 }
 
 model BookTagPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  tagId     String
+  user      User     @relation(fields: [userId], references: [id])
+  tag       Tag      @relation(fields: [tagId], references: [id])
+  createdAt DateTime @default(now())
   id        String   @id @default(cuid())
   userId    String
   tagId     String
@@ -236,7 +295,7 @@ model Rating {
 model Review {
   id          String   @id @default(cuid())
   title       String
-  content     String
+  content     String   @db.Text
   reviewPoint Int
   isApproved  Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -255,7 +314,7 @@ model Review {
 
 model Comment {
   id         String   @id @default(cuid())
-  content    String
+  content    String   @db.Text
   isApproved Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -358,6 +417,7 @@ model Order {
   payment     Payment[]
 
   affiliateId String?
+  affiliate   Affiliate?  @relation(fields: [affiliateId], references: [id])
   affiliate   Affiliate?  @relation(fields: [affiliateId], references: [id])
   addressId   String
   address     UserAddress @relation(fields: [addressId], references: [id])
