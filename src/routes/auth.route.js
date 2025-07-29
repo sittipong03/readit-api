@@ -1,6 +1,6 @@
 import express from "express";
 import * as authController from "../controllers/auth.controller.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 import {
   validate,
   validateEmail,

@@ -1,5 +1,10 @@
 import createError from "../utils/create-error.util.js";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import * as dotenv from "dotenv";
 import * as reviewService from "../services/review.service.js";
+dotenv.config();
 
 export async function testGet(req, res, next) {
   try {

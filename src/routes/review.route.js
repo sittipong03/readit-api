@@ -1,9 +1,8 @@
-import express from "express"
-import * as reviewController from "../controllers/review.controller.js"
+import express from "express";
+import * as reviewController from "../controllers/review.controller.js";
 
+const reviewRoute = express.Router();
 
-const reviewRoute = express.Router()
+reviewRoute.get("/", reviewController.testGet);
 
-reviewRoute.get('/' , reviewController.testGet)
-
-export default reviewRoute
+export default reviewRoute;
