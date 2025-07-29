@@ -298,7 +298,6 @@ export async function updateBook(req, res, next) {
         // 8. เรียกใช้ service เพื่ออัปเดตข้อมูล
         const data = await bookService.patchBook(id, updateData);
         res.json(data);
-
     } catch (error) {
         next(error)
     }
@@ -312,9 +311,7 @@ export async function deleteBook(req, res, next) {
             createError(404, "Book not found");
         }
 
-
         await bookService.deleteBook(id);
-
         // 4. ส่งสถานะ 204 (No Content) หรือ 200 เพื่อยืนยันว่าการลบสำเร็จ
         res.json({ message: "Book deleted successfully" });
 

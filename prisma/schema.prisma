@@ -117,7 +117,7 @@ model Follow {
 
 model Book {
   id           String  @id @default(cuid())
-  searchKey    String? @unique
+  searchKey    String  @unique
   title        String
   description  String? @db.Text
   aiSuggestion String? @db.Text
