@@ -6,6 +6,17 @@ import redis from "redis";
 ////////////////////////////////////////////////////////////////
 // books section : getBooks ,getBookById, searchKeywordBooks , createBook , updateBook ,deleteBook
 ////////////////////////////////////////////////////////////////
+
+// Search book by AI
+export async function searchBookByAI(req, res, next) {
+    try {
+        const userInfo = req.body
+        const data = await bookService.searchBookByAI(userInfo)
+        res.status(200).json({books : data})
+    } catch (error) {
+        next(error)
+    }
+}
 export async function getBooks(req, res, next) {
     try {
         const data = await bookService.getBooks()
@@ -354,8 +365,6 @@ export async function updateAuthor(req, res, next) {
         if (!idExist) {
             createError(404, "Author not found")
         }
-
-
         if (!req.body) {
             createError(400, "Update data is required")
         }

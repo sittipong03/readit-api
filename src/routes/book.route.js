@@ -17,6 +17,10 @@ bookRoute.patch('/authors/:id', bookController.updateAuthor) // need authen chec
 bookRoute.delete('/authors/:id' , bookController.deleteAuthor) // need authen check admin middleware
 
 // tags section
+// Search book by AI
+bookRoute.post("/search", bookController.searchBookByAI)
+
+// tags
 bookRoute.get('/tags' , bookController.getTags)
 bookRoute.post('/tags' , bookController.createTag) // need authen check admin middleware
 bookRoute.patch('/tags/:id', bookController.updateTag) // need authen check admin middleware

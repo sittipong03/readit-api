@@ -35,9 +35,10 @@ model User {
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   // authen
-  otp                   Otp[]
-  trustedDevice         TrustedDevice[]
-  notification          Notification[]
+  otp           Otp[]
+  trustedDevice TrustedDevice[]
+  notification  Notification[]
+  RefreshToken  RefreshToken[]
   //follower
   followers             Follow[]        @relation("Following")
   following             Follow[]        @relation("Follower")
@@ -495,4 +496,15 @@ model Commission {
   affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
   orderId     String    @unique
   order       Order     @relation(fields: [orderId], references: [id])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
 }
