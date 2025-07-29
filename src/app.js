@@ -9,6 +9,7 @@ import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import bookRoute from "./routes/book.route.js";
 import reviewRoute from "./routes/review.route.js";
+import commentRoute from "./routes/comment.route.js";
 import cartRoute from "./routes/cart.route.js";
 import orederRoute from "./routes/order.route.js";
 import affiliateRoute from "./routes/affiliate.route.js";
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute)
 app.use("/api/book", bookRoute)
 app.use("/api/review", reviewRoute)
+app.use("/api/comment", commentRoute)
 app.use("/api/cart", cartRoute)
 app.use("/api/order", orederRoute)
 app.use("/api/affiliate", affiliateRoute)
