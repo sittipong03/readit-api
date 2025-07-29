@@ -32,7 +32,7 @@ app.use("/api/review", reviewRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/order", orderRoute);
 app.use("/api/affiliate", affiliateRoute);
-app.use("/api/notification", notificationRoute);
+app.use("/api/notifications", notificationRoute);
 
 //404
 app.use(notFoundMiddleware);

@@ -99,15 +99,15 @@ Return your decision as JSON:
   }
 };
 
-console.log(" Test 1: Short negative review ");
-await moderateReview("fuck");
+// console.log(" Test 1: Short negative review ");
+// await moderateReview("fuck");
 
-console.log(" Test 2: Good detailed review ");
-await moderateReview(
-  "This book was amazing! The character development was incredible and the plot kept me engaged throughout. I especially loved how the author handled the themes of friendship and betrayal. Highly recommend to anyone who enjoys fantasy novels. 5/5 stars!"
-);
+// console.log(" Test 2: Good detailed review ");
+// await moderateReview(
+//   "This book was amazing! The character development was incredible and the plot kept me engaged throughout. I especially loved how the author handled the themes of friendship and betrayal. Highly recommend to anyone who enjoys fantasy novels. 5/5 stars!"
+// );
 
-console.log(" Test 3: Harsh negative review ");
-await moderateReview(
-  "This book sucks! Complete waste of time. Author doesn't know how to write."
-);
+// console.log(" Test 3: Harsh negative review ");
+// await moderateReview(
+//   "This book sucks! Complete waste of time. Author doesn't know how to write."
+// );
