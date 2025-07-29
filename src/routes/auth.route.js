@@ -6,6 +6,7 @@ import {
   validateEmail,
   validateLogin,
   validateRegister,
+  validateResetToken,
 } from "../middleware/validator.js";
 import jwt from "jsonwebtoken";
 
@@ -25,7 +26,12 @@ authRoute.post(
   validate(validateEmail),
   authController.forgotPassword
 );
-authRoute.post("/reset", authController.resetPassword);
+authRoute.post(
+  "/reset",
+  authMiddleware,
+  validate(validateResetToken),
+  authController.resetPassword
+);
 
 //เทส
 authRoute.post("/get-test-token", (req, res) => {
