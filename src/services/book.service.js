@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.config.js";
+import { searchBooks } from "../middleware/ai.middleware.js";
 
 export async function testGetBook () {
     return await prisma.user.findMany()
@@ -8,8 +9,20 @@ export async function createBook(data){
     return await prisma.book.create ({
         data : data
     }) 
+}
 
-    
+// Search book by AI
+export async function searchBookByAI(userInfo){
+    const userInfo = userInfo
+    const bookResult = searchBooks(userInfo);
+    const booksArr =  bookResult.split(",");
+    return await prisma.book.findMany ({
+        where: {
+            OR: booksArr.map(book => ({
+                searchKey : {contain: book}
+            }))
+        }
+    });
 }
 
 
