@@ -21,23 +21,26 @@ enum Role {
 }
 
 model User {
-  id            String          @id @default(cuid())
-  email         String          @unique
-  password      String
-  name          String
-  role          Role            @default(USER)
-  emailVerified Boolean         @default(false)
-  reviewCount   Int             @default(0)
-  followerCount Int             @default(0)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id                    String          @id @default(cuid())
+  email                 String          @unique
+  password              String
+  name                  String
+  role                  Role            @default(USER)
+  emailVerified         Boolean         @default(false)
+  userScore             Int             @default(0)
+  latestUserScoreUpdate DateTime
+  isBan                 Boolean         @default(false)
+  reviewCount           Int             @default(0)
+  followerCount         Int             @default(0)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
   // authen
-  otp           Otp[]
-  trustedDevice TrustedDevice[]
-  notification  Notification[]
+  otp                   Otp[]
+  trustedDevice         TrustedDevice[]
+  notification          Notification[]
   //follower
-  followers     Follow[]        @relation("Following")
-  following     Follow[]        @relation("Follower")
+  followers             Follow[]        @relation("Following")
+  following             Follow[]        @relation("Follower")
 
   // order
   userAddress       UserAddress[]
@@ -112,10 +115,10 @@ model Follow {
 // ----------------------------------------
 
 model Book {
-  id            String  @id @default(cuid())
-  searchKey     String  @unique
-  title         String
-  description   String? @db.Text
+  id           String  @id @default(cuid())
+  searchKey    String? @unique
+  title        String
+  description  String? @db.Text
   aiSuggestion String? @db.Text
 
   // --- Denormalized Fields ---
@@ -141,7 +144,7 @@ model Book {
   // data
   bookTag   BookTag[]
   shelf     Shelf[]
-  edition Edition[]
+  edition   Edition[]
 
   Author   Author? @relation(fields: [authorId], references: [id])
   authorId String?
@@ -151,24 +154,23 @@ model Book {
 }
 
 model Edition {
-  id            String  @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   isbn          String? @unique
   pages         Int
   publishedYear Int?
   coverImage    String?
 
   // Flag สำหรับระบุว่าเป็น Edition ล่าสุด เพื่อนำไปแสดงผลเป็นหลัก
-  isLatest      Boolean @default(false)
+  isLatest Boolean @default(false)
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // --- Relations ---
   // เชื่อมกลับไปยัง "ผลงาน" หลัก
   book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
   bookId String
-
 
   @@index([bookId])
 }
@@ -176,7 +178,7 @@ model Edition {
 model Author {
   id           String   @id @default(cuid())
   name         String   @unique()
-  bio          String? @db.Text
+  bio          String?  @db.Text
   profileImage String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -257,7 +259,7 @@ model Rating {
 model Review {
   id          String   @id @default(cuid())
   title       String
-  content     String @db.Text
+  content     String   @db.Text
   reviewPoint Int
   isApproved  Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -276,7 +278,7 @@ model Review {
 
 model Comment {
   id         String   @id @default(cuid())
-  content    String @db.Text
+  content    String   @db.Text
   isApproved Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -367,6 +369,9 @@ enum OrderStatus {
 
 model Order {
   id          String   @id @default(cuid())
+  name        String
+  address     String
+  phoneNumber String
   totalAmount Decimal
   isAffiliate Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -379,18 +384,15 @@ model Order {
   payment     Payment[]
 
   affiliateId String?
-  affiliate   Affiliate?  @relation(fields: [affiliateId], references: [id])
-  addressId   String
-  address     UserAddress @relation(fields: [addressId], references: [id])
+  affiliate   Affiliate? @relation(fields: [affiliateId], references: [id])
   userId      String
-  user        User        @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
 }
 
 model OrderItem {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   quantity     Int
   pricePerUnit Decimal
-  createdAt    DateTime @default(now())
 
   productId String
   product   Product @relation(fields: [productId], references: [id])
@@ -410,7 +412,6 @@ enum PaymentStatus {
 enum PaymentType {
   CREDIT_CARD
   PROMPTPAY
-  BANK_TRANSFER
 }
 
 model Payment {
@@ -439,8 +440,6 @@ model UserAddress {
   isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  order Order[]
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
