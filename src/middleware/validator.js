@@ -56,6 +56,21 @@ export const validateEmail = yup.object({
     ),
 });
 
+export const validateResetToken = yup.object({
+  currentPassword: yup.string().required("Current password is required"),
+  newPassword: yup
+    .string()
+    .required("New password is required")
+    .min(6, "Password must be at least 6 characters long")
+    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .matches(/\d/, "Password must contain at least one number")
+    .matches(
+      /[@$!%*?&#_]/,
+      "Password must contain at least one special character"
+    ),
+});
+
 export const validate = (schema) => async (req, res, next) => {
   console.log(req.body);
   try {
