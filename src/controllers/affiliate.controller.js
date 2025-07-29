@@ -3,8 +3,8 @@ import * as affiliateService from "../services/affiliate.service.js";
 
 export async function registerAffiliate(req, res, next) {
   try {
-    // const userId = req.user.userId;
-    const { userId, accountDetails, methodType } = req.body;
+    const userId = req.user.userId;
+    const { accountDetails, methodType } = req.body;
 
     if (!accountDetails || !methodType) {
       throw createError(400, "กรุณากรอกข้อมูลการรับเงินให้ครบถ้วน");
@@ -23,8 +23,7 @@ export async function registerAffiliate(req, res, next) {
 
 export async function getSelf(req, res, next) {
   try {
-    // const userId = req.user.userId;
-    const { userId } = req.params;
+    const userId = req.user.userId;
     const affiliateInfo = await affiliateService.getAffiliate(userId);
     res.json({ affiliate: affiliateInfo });
   } catch (error) {

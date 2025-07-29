@@ -1,5 +1,5 @@
-import createError from "../utils/create-error.util.js"
-import * as bookService from "../services/book.service.js"
+import createError from "../utils/create-error.util.js";
+import * as bookService from "../services/book.service.js";
 
 export async function testGet(req , res ,next) {
     try {
@@ -9,6 +9,17 @@ export async function testGet(req , res ,next) {
         next(error)
     }
     
+}
+
+// Search book by AI
+export async function searchBookByAI(req, res, next) {
+    try {
+        const userInfo = req.body
+        const data = await bookService.searchBookByAI(userInfo)
+        res.status(200).json({books : data})
+    } catch (error) {
+        next(error)
+    }
 }
 
 // export async function createBook (req, res, next){

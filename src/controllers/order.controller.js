@@ -1,19 +1,19 @@
 import createError from "../utils/create-error.util.js";
 import * as orderService from "../services/order.service.js";
 
-export async function testGet(req, res, next) {
-  try {
-    const data = await orderService.testGetOrder();
-    res.json({ data, message: "Order" });
-  } catch (error) {
-    next(error);
-  }
-}
+// export async function testGet(req, res, next) {
+//   try {
+//     const data = await orderService.testGetOrder();
+//     res.json({ data, message: "Order" });
+//   } catch (error) {
+//     next(error);
+//   }
+// }
 
 export async function createOrder(req, res, next) {
   try {
-    // const userId = req.user.id; รอLogin
-    const { userId, addressId, affiliateCode } = req.body;
+    const userId = req.user.id;
+    const { addressId, affiliateCode } = req.body;
 
     if (!addressId) {
       return next(createError(400, "กรุณาระบุที่อยู่สำหรับจัดส่ง"));
