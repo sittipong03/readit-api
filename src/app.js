@@ -1,4 +1,6 @@
 import express from "express";
+import session from "express-session";
+import passport from "./config/passport.config.js";
 import cors from "cors";
 import morgan from "morgan";
 import notFoundMiddleware from "./middleware/not-found.middleware.js";
@@ -24,6 +26,15 @@ app.use(
 
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "default_secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);

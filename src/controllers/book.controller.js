@@ -1,10 +1,5 @@
 import createError from "../utils/create-error.util.js";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { StringOutputParser } from "@langchain/core/output_parsers";
 import * as bookService from "../services/book.service.js";
-import * as dotenv from "dotenv";
-dotenv.config();
 
 export async function testGet(req, res, next) {
   try {
@@ -90,57 +85,3 @@ export async function deleteTag(req, res, next) {
     next(error);
   }
 }
-
-const createFunFactModel = () => {
-  return new ChatGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_API_KEY,
-    model: "gemini-1.5-flash",
-    temperature: 0.1,
-    maxOutputTokens: 1000,
-  });
-};
-
-export const generateFunFacts = async (title, author) => {
-  const model = createFunFactModel();
-
-  const funFactPrompt = ChatPromptTemplate.fromTemplate(
-    `Hey, Gemini ! Now you're the book expert. Generate quick fun facts about the book "{title}" by {author}.
-
-Make it:
-- Surprising and engaging
-- Not too long
-- Focus on one of these areas: writing inspiration, publication details, cultural impact, or author's experience
-
-
-Return as simple JSON array:
-{{
-  "fact": "Your interesting fun fact here",
-}}`
-  );
-
-  const parser = new StringOutputParser();
-  const chain = funFactPrompt.pipe(model).pipe(parser);
-
-  try {
-    const res = await chain.invoke({ title, author });
-
-    let cleanedContent = res.trim();
-    if (cleanedContent.startsWith("```json")) {
-      cleanedContent = cleanedContent
-        .replace(/```json\s*/, "")
-        .replace(/\s*```$/, "");
-    }
-
-    return {
-      success: true,
-      data: JSON.parse(cleanedContent),
-      type: "fun_fact",
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message,
-      type: "fun_fact",
-    };
-  }
-};
