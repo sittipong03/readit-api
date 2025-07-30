@@ -27,8 +27,8 @@ model User {
   name                  String
   role                  Role            @default(USER)
   emailVerified         Boolean         @default(false)
-  userScore             Int             @default(0)
-  latestUserScoreUpdate DateTime
+  userScore             Int?            @default(0)
+  latestUserScoreUpdate DateTime?
   isBan                 Boolean         @default(false)
   reviewCount           Int             @default(0)
   followerCount         Int             @default(0)
