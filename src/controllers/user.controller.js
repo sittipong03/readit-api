@@ -25,10 +25,12 @@ export async function getMe(req, res, next) {
 export async function updateUser(req, res, next) {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
 
-    if (updateData.password) {
+    if (updateData.password && updateData.password.trim() !== "") {
       updateData.password = await bcryptjs.hash(updateData.password, 10);
+    } else {
+      delete updateData.password;
     }
 
     const updatedUser = await prisma.user.update({

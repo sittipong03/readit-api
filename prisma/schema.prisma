@@ -23,7 +23,7 @@ enum Role {
 model User {
   id                    String          @id @default(cuid())
   email                 String          @unique
-  password              String
+  password              String?
   name                  String
   role                  Role            @default(USER)
   emailVerified         Boolean         @default(false)
@@ -35,13 +35,18 @@ model User {
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   // authen
-  otp           Otp[]
-  trustedDevice TrustedDevice[]
-  notification  Notification[]
-  RefreshToken  RefreshToken[]
+  otp                   Otp[]
+  trustedDevice         TrustedDevice[]
+  notification          Notification[]
+  RefreshToken          RefreshToken[]
+
+  // for oauth google
+  googleId  String? @unique
+  avatarUrl String? @db.Text
+
   //follower
-  followers             Follow[]        @relation("Following")
-  following             Follow[]        @relation("Follower")
+  followers Follow[] @relation("Following")
+  following Follow[] @relation("Follower")
 
   // order
   userAddress       UserAddress[]
