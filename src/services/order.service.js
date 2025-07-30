@@ -45,7 +45,7 @@ export async function createOrder(userId, addressId, affiliateCode) {
           data: {
             orderId: order.id,
             affiliateId: affiliate.id,
-            commissionAmount: totalAmount * 0.05,
+            commissionAmount: totalAmount * 0.1,
           },
         });
       }

@@ -117,7 +117,6 @@ export async function login(req, res, next) {
     };
 
     console.log("Token payload:", payload);
-
     const generateToken = jwt.sign(
       {
         user: {
