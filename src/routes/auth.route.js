@@ -14,6 +14,7 @@ import { auth } from "google-auth-library";
 
 const authRoute = express.Router();
 
+// สำหรับทดสอบการ login ด้วย Google
 authRoute.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a>");
 });
@@ -51,6 +52,7 @@ authRoute.get(
     }
   }
 );
+//////////
 authRoute.get("/test", authMiddleware, (req, res) => {
   // ต้องใช้ middleware เพื่อตรวจสอบ authentication
   res.json({
