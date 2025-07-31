@@ -30,17 +30,6 @@ export function authMiddleware(req, res, next) {
   }
 }
 
-export function authMiddleware(req, res, next) {
-    const userIdFromHeader = req.headers['userid'];
-    if (!userIdFromHeader) {
-        return res.status(401).json({ message: 'Unauthorized: User ID header (userid) is missing.' });
-    }
-    req.user = {
-        id: userIdFromHeader
-    };
-    next();
-}
-
 export async function isReviewOwner(req, res, next) {
   const {
     id

@@ -1,5 +1,6 @@
 import createError from "../utils/create-error.util.js"
 import * as bookService from "../services/book.service.js"
+import cloudinary from "../config/cloudinary.config.js";
 import redis from "redis";
 
 
