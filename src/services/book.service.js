@@ -20,7 +20,6 @@ export async function searchBookByAI(userInfo) {
 }
 
 export async function aiDoYouKnow(bookId) {
-    let bookId = bookId;
     const selectBook = await prisma.book.findUnique({
         where: {
             id: bookId
@@ -35,7 +34,6 @@ export async function aiDoYouKnow(bookId) {
 }
 
 export async function aiSuggestion(bookId) {
-    let bookId = bookId;
     const selectBook = await prisma.book.findUnique({
         where: {
             id: bookId
