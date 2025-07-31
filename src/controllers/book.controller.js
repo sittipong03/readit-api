@@ -1,39 +1,17 @@
 import createError from "../utils/create-error.util.js";
 import * as bookService from "../services/book.service.js";
+import redis from "redis";
 
-export async function testGet(req, res, next) {
-    try {
-        const data = await bookService.testGetBook()
-        res.json({ data, message: "Book" })
-    } catch (error) {
-        next(error)
-    }
-
-}
+////////////////////////////////////////////////////////////////
+// books section : getBooks ,getBookById, searchKeywordBooks , createBook , updateBook ,deleteBook
+////////////////////////////////////////////////////////////////
 
 // Search book by AI
 export async function searchBookByAI(req, res, next) {
     try {
         const userInfo = req.body
         const data = await bookService.searchBookByAI(userInfo)
-        res.status(200).json({ books: data })
-    } catch (error) {
-        next(error)
-    }
-}
-
-// Get book by id
-export async function getBookById(req, res, next) {
-    try {
-        const bookId = req.params;
-        const data = await bookService.getBookById(bookId);
-        const aiDoYouKnow = await bookService.aiDoYouKnow(bookId);
-        const aiSuggestion = await bookService.aiSuggestion(bookId)
-        res.status(200).json({
-            book: data,
-            aiDoYouKnow: aiDoYouKnow,
-            aiSuggestion
-        })
+        res.status(200).json({books : data})
     } catch (error) {
         next(error)
     }
@@ -42,77 +20,77 @@ export async function getBookById(req, res, next) {
 // export async function createBook (req, res, next){
 //     const {} = req.body
 //     try {
-
-
+        
+        
 //     } catch (error) {
-
+        
 //     }
 // }
 
 
 ////////////////////////////////////////////////////////////////
-// tag section : getTags  , createTags , updateTags , deleteTags
+// Authors section : getAuthors , createAuthor , updateAuthor , deleteAuthor
 ////////////////////////////////////////////////////////////////
-export async function getTags(req, res, next) {
+export async function getTags (req , res ,next) {
     try {
         const data = await bookService.getTags()
         res.json(data)
     } catch (error) {
         next(error)
-
+        
     }
 }
-export async function createTag(req, res, next) {
-    try {
-        const { name, description } = req.body
-        if (!name) {
-            createError(400, "Tag name is required")
+export async function createTag (req , res , next){
+    try { 
+        const {name , description} = req.body
+        if(!name){
+            createError(400 , "Tag name is required")
         }
         const tagData = {
-            data: {
+            data : {
                 name,
                 description
             }
         }
         const newTag = await bookService.postTags(tagData)
-        res.json(newTag)
+        res.json(newTag)      
     } catch (error) {
         next(error)
     }
 }
-export async function updateTag(req, res, next) {
-    try {
+export async function updateTag (req , res , next){
+    try { 
         const id = req.params.id
-        const { name, description } = req.body
+        const {name , description} = req.body
         const idExist = await bookService.getTagsById(id)
-        if (!idExist) {
-            createError(400, "Tag name not found")
+        if (!idExist){
+            createError(400 , "Tag name not found")
         }
 
-        if (!req.body) {
-            createError(400, "Update data is required")
+        if(!req.body){
+            createError(400 , "Update data is required")
         }
         const tagData = {
-            name,
-            description
+                name ,
+                description 
         }
-        const newTag = await bookService.patchTags(id, tagData)
+        const newTag = await bookService.patchTags(id , tagData)
 
-        res.json(newTag)
+        res.json(newTag)     
     } catch (error) {
         next(error)
     }
 }
-export async function deleteTag(req, res, next) {
-    try {
+export async function deleteTag (req , res , next){
+    try { 
         const id = req.params.id
         const idExist = await bookService.getTagsById(id)
-        if (!idExist) {
-            createError(400, "Tag name not found")
+        if (!idExist){
+            createError(400 , "Tag name not found")
         }
         const newTag = await bookService.deleteTags(id)
 
-        res.json(newTag)
+        res.json(newTag)     
     } catch (error) {
         next(error)
     }

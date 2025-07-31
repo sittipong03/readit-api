@@ -3,9 +3,8 @@ import * as cartService from "../services/cart.service.js";
 
 export async function getCart(req, res, next) {
   try {
-    // const userId = req.user.id; //รอ authMid
+    const userId = req.user.id; //รอ authMid
 
-    const { userId } = req.params;
     const cart = await cartService.getCart(userId);
     res.json({ cart });
   } catch (error) {
@@ -15,9 +14,9 @@ export async function getCart(req, res, next) {
 
 export async function addToCart(req, res, next) {
   try {
-    // const userId = req.user.userId; รอ authMid
+    const userId = req.user.userId;
 
-    const { userId, productId, quantity } = req.body;
+    const { productId, quantity } = req.body;
 
     if (!productId || !quantity || quantity <= 0) {
       throw createError(400, "กรุณาระบุ productId และ quantity ให้ถูกต้อง");
@@ -37,9 +36,9 @@ export async function addToCart(req, res, next) {
 
 export async function updateCartItemQuantity(req, res, next) {
   try {
-    // const userId = req.user.userId; รอ authMid
+    const userId = req.user.userId;
     const { itemId } = req.params;
-    const { userId, quantity } = req.body;
+    const { quantity } = req.body;
 
     if (typeof quantity === "undefined") {
       throw createError(400, "กรุณาระบุ quantity");
@@ -57,10 +56,9 @@ export async function updateCartItemQuantity(req, res, next) {
 
 export async function removeCartItem(req, res, next) {
   try {
-    // const userId = req.user.id; //รอ authMid
+    const userId = req.user.id;
 
     const { itemId } = req.params;
-    const { userId } = req.body;
 
     if (!userId) {
       throw createError(400, "กรุณาส่ง userId มาใน Body");

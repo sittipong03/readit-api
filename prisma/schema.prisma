@@ -21,23 +21,32 @@ enum Role {
 }
 
 model User {
-  id            String          @id @default(cuid())
-  email         String          @unique
-  password      String
-  name          String
-  role          Role            @default(USER)
-  emailVerified Boolean         @default(false)
-  reviewCount   Int             @default(0)
-  followerCount Int             @default(0)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id                    String          @id @default(cuid())
+  email                 String          @unique
+  password              String?
+  name                  String
+  role                  Role            @default(USER)
+  emailVerified         Boolean         @default(false)
+  userScore             Int             @default(0)
+  latestUserScoreUpdate DateTime
+  isBan                 Boolean         @default(false)
+  reviewCount           Int             @default(0)
+  followerCount         Int             @default(0)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
   // authen
-  otp           Otp[]
-  trustedDevice TrustedDevice[]
-  notification  Notification[]
+  otp                   Otp[]
+  trustedDevice         TrustedDevice[]
+  notification          Notification[]
+  RefreshToken          RefreshToken[]
+
+  // for oauth google
+  googleId  String? @unique
+  avatarUrl String? @db.Text
+
   //follower
-  followers     Follow[]        @relation("Following")
-  following     Follow[]        @relation("Follower")
+  followers Follow[] @relation("Following")
+  following Follow[] @relation("Follower")
 
   // order
   userAddress       UserAddress[]
@@ -366,6 +375,9 @@ enum OrderStatus {
 
 model Order {
   id          String   @id @default(cuid())
+  name        String
+  address     String
+  phoneNumber String
   totalAmount Decimal
   isAffiliate Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -378,18 +390,15 @@ model Order {
   payment     Payment[]
 
   affiliateId String?
-  affiliate   Affiliate?  @relation(fields: [affiliateId], references: [id])
-  addressId   String
-  address     UserAddress @relation(fields: [addressId], references: [id])
+  affiliate   Affiliate? @relation(fields: [affiliateId], references: [id])
   userId      String
-  user        User        @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
 }
 
 model OrderItem {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   quantity     Int
   pricePerUnit Decimal
-  createdAt    DateTime @default(now())
 
   productId String
   product   Product @relation(fields: [productId], references: [id])
@@ -409,7 +418,6 @@ enum PaymentStatus {
 enum PaymentType {
   CREDIT_CARD
   PROMPTPAY
-  BANK_TRANSFER
 }
 
 model Payment {
@@ -438,8 +446,6 @@ model UserAddress {
   isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  order Order[]
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -495,4 +501,15 @@ model Commission {
   affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
   orderId     String    @unique
   order       Order     @relation(fields: [orderId], references: [id])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
 }
