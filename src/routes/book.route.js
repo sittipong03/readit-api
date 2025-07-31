@@ -10,6 +10,9 @@ bookRoute.get('/' ,bookController.testGet)
 // Search book by AI
 bookRoute.post("/search", bookController.searchBookByAI)
 
+// Id
+bookRoute.get('/:id', bookController.getBookById)
+
 // tags
 bookRoute.get('/tags' , bookController.getTags)
 bookRoute.post('/tags' , bookController.createTag)
