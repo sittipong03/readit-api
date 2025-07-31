@@ -3,32 +3,32 @@ import jwt from "jsonwebtoken";
 
 export function authMiddleware(req, res, next) {
   try {
-    console.log("authMiddleware start");
     const authHeader = req.headers.authorization;
-    console.log("Authorization header:", authHeader);
+    console.log("Authorization header", authHeader);
 
     if (!authHeader?.startsWith("Bearer ")) {
-      console.log("No valid bearer token");
+      console.log("No valid bearer token found");
       return createError(401, "Token missing");
     }
 
     const token = authHeader.split(" ")[1];
-    console.log("Extracted token:", token);
+    console.log("Extracted token", token);
 
-    console.log("Key ที่ใช้ตรวจสอบ Token:", process.env.JWT_SECRET_KEY);
     jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
-      console.log("Inside jwt.verify callback");
       if (error) {
-        console.log("JWT verify error:", err);
+        console.log("JWT verification error", error);
         return createError(401, "Token invalid");
       }
-      console.log("Decoded payload:", decoded);
+
+      console.log("Decoded token", decoded);
+      console.log("User object", decoded.user);
+
       req.user = decoded.user ?? decoded;
-      console.log("req.user set to:", req.user);
+
       next();
     });
   } catch (error) {
-    console.log("Middleware catch error:", error);
+    console.log("Middleware catch error", error);
     next(error);
   }
 }
