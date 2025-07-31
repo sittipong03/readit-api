@@ -21,6 +21,9 @@ bookRoute.delete('/authors/:id' , bookController.deleteAuthor) // need authen ch
 // Search book by AI
 bookRoute.post("/search", bookController.searchBookByAI)
 
+// Id
+bookRoute.get('/:id', bookController.getBookById)
+
 // tags
 bookRoute.get('/tags' , bookController.getTags)
 bookRoute.post('/tags' , bookController.createTag) // need authen check admin middleware
