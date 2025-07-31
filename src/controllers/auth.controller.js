@@ -117,6 +117,7 @@ export async function login(req, res, next) {
     };
 
     console.log("Token payload:", payload);
+    console.log("Key ที่ใช้สร้าง Token:", process.env.JWT_SECRET_KEY);
     const generateToken = jwt.sign(
       {
         user: {
