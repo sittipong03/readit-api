@@ -2,114 +2,117 @@ import createError from "../utils/create-error.util.js";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import prisma from "../config/prisma.config.js";
 import * as dotenv from "dotenv";
 import * as reviewService from "../services/review.service.js";
 dotenv.config();
 
 export async function createReview(req, res) {
-  const {
-    bookId
-  } = req.params;
-  const {
-    title,
-    content,
-    reviewPoint
-  } = req.body;
+  const { bookId } = req.params;
+  const { title, content, reviewPoint } = req.body;
   const userId = req.user.id;
 
   try {
-    const review = await reviewService.createReviewService(userId, bookId, title, content, reviewPoint);
+    const review = await reviewService.createReviewService(
+      userId,
+      bookId,
+      title,
+      content,
+      reviewPoint
+    );
     return res.status(201).json({
-      message: 'Review added successfully',
-      review
+      message: "Review added successfully",
+      review,
     });
   } catch (error) {
-    if (error.message === 'Review point must be between 1 and 5.') {
+    if (error.message === "Review point must be between 1 and 5.") {
       return res.status(400).json({
-        message: error.message
+        message: error.message,
       });
     }
-    if (error.message === 'You have already submitted a review for this book.') {
+    if (
+      error.message === "You have already submitted a review for this book."
+    ) {
       return res.status(409).json({
-        message: error.message
+        message: error.message,
       });
     }
-    console.error('Error creating review:', error);
+    console.error("Error creating review:", error);
     return res.status(500).json({
-      message: 'Failed to add review.'
+      message: "Failed to add review.",
     });
   }
 }
 
 export async function getReviewsByBook(req, res) {
-  const {
-    bookId
-  } = req.params;
+  const { bookId } = req.params;
   try {
     const reviews = await reviewService.getReviewsByBookService(bookId);
     return res.status(200).json(reviews);
   } catch (error) {
-    console.error('Error fetching reviews:', error);
+    console.error("Error fetching reviews:", error);
     return res.status(500).json({
-      message: 'Failed to fetch reviews.'
+      message: "Failed to fetch reviews.",
     });
   }
 }
 
 export async function editReview(req, res) {
-  const {
-    id
-  } = req.params;
+  const { id } = req.params;
   const userId = req.user.id;
   const updateData = req.body;
 
   try {
-    const updatedReview = await reviewService.editReviewService(id, userId, updateData);
+    const updatedReview = await reviewService.editReviewService(
+      id,
+      userId,
+      updateData
+    );
     return res.status(200).json({
-      message: 'Review updated successfully',
-      review: updatedReview
+      message: "Review updated successfully",
+      review: updatedReview,
     });
   } catch (error) {
-    if (error.message === 'Review not found.') {
+    if (error.message === "Review not found.") {
       return res.status(404).json({
-        message: error.message
+        message: error.message,
       });
     }
-    if (error.message === 'Unauthorized: You can only edit your own reviews.') {
+    if (error.message === "Unauthorized: You can only edit your own reviews.") {
       return res.status(403).json({
-        message: error.message
+        message: error.message,
       });
     }
-    console.error('Error editing review:', error);
+    console.error("Error editing review:", error);
     return res.status(500).json({
-      message: 'Failed to update review.'
+      message: "Failed to update review.",
     });
   }
 }
 
 export async function deleteReview(req, res) {
-  const {
-    id
-  } = req.params;
+  const { id } = req.params;
   const userId = req.user.id;
 
   try {
     const result = await reviewService.deleteReviewService(id, userId);
     return res.status(200).json(result);
   } catch (error) {
-    if (error.message === 'Review not found.') {
+    if (error.message === "Review not found.") {
       return res.status(404).json({
-        message: error.message
+        message: error.message,
       });
     }
-    if (error.message === 'Unauthorized: You can only delete your own reviews.') {
+    if (
+      error.message === "Unauthorized: You can only delete your own reviews."
+    ) {
       return res.status(403).json({
-        message: error.message
+        message: error.message,
       });
     }
-    console.error('Error deleting review:', error);
+    console.error("Error deleting review:", error);
     return res.status(500).json({
-      message: 'Failed to delete review.'
+      message: "Failed to delete review.",
     });
   }
 }
@@ -132,7 +135,37 @@ const createModerateModel = () => {
     maxOutputTokens: 1000,
   });
 };
-export const moderateReview = async (content) => {
+
+const getQualityFromScore = (score) => {
+  if (score >= 85) return "EXCEPTIONAL";
+  if (score >= 70) return "HIGH";
+  if (score >= 60) return "GOOD";
+  if (score >= 50) return "BORDERLINE";
+  if (score >= 0) return "POOR";
+  return "ERROR";
+};
+
+// save result to database
+const saveResult = async (reviewId, result) => {
+  try {
+    await prisma.reviewModeration.create({
+      data: {
+        reviewId,
+        score: result.score,
+        reason: result.reason,
+        quality: getQualityFromScore(result.score),
+        feedback: result.feedback || null,
+        isAccepted: result.isAccepted,
+      },
+    });
+    return true;
+  } catch (error) {
+    console.error("Save failed:", error);
+    return false;
+  }
+};
+
+export const moderateReview = async (reviewId, content) => {
   const model = createModerateModel();
 
   //create prompt template
@@ -155,15 +188,16 @@ Publishing Guidelines:
 - Must disclose if you received the book for free
 
 Scoring system (1-100):
-- 80+ = Excellent, publish immediately
-- 60-79 = Good enough, approve
-- 40-59 = Borderline, usually reject
-- Below 40 = Definitely reject
+- 85+ = Exceptional !, approve with no edits
+- 70-84 = High, approve with minor edits
+- 60-69 = Good enough, still approve
+- 50-59 = Borderline, usually reject
+- Below 50 = Definitely reject
 
 Decision: Only approve if score is 60 or higher.
 
 Return your decision as JSON:
-{{"isAccepted": boolean, "score": number, "reason": "brief explanation", "quality": "excellent/good/average/poor"}}`
+{{"isAccepted": boolean, "score": number 0-100, "reason": "brief explanation why", "feedback": "suggestions for improvement(if any)"}}`
   );
 
   // create parser
@@ -176,7 +210,7 @@ Return your decision as JSON:
     // call chain
     const res = await chain.invoke({ content });
 
-    console.log("Raw response:", res.content);
+    console.log("Raw response:", res);
 
     // ทำความสะอาด response (เอา ```json และ ``` ออก)
     let cleanedContent = res.trim();
@@ -197,8 +231,11 @@ Return your decision as JSON:
       );
       console.log(`Score: ${jsonResult.score}/100`);
       console.log(`Reason: ${jsonResult.reason}`);
+      console.log(`Feedback: ${jsonResult.feedback || "No feedback provided"}`);
 
-      return jsonResult;
+      const saved = await saveResult(reviewId, jsonResult);
+
+      return { ...jsonResult, reviewId, saved };
     } catch (parseError) {
       console.log("Could not parse JSON:", parseError.message);
     }
@@ -207,15 +244,51 @@ Return your decision as JSON:
   }
 };
 
-// console.log(" Test 1: Short negative review ");
-// await moderateReview("fuck");
+export async function getHistory(reviewId) {
+  try {
+    return await prisma.reviewModeration.findMany({
+      where: { reviewId },
+      orderBy: { moderatedAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Get history failed:", error);
+    return [];
+  }
+}
 
-// console.log(" Test 2: Good detailed review ");
-// await moderateReview(
-//   "This book was amazing! The character development was incredible and the plot kept me engaged throughout. I especially loved how the author handled the themes of friendship and betrayal. Highly recommend to anyone who enjoys fantasy novels. 5/5 stars!"
-// );
+// get moderation stats
+export async function getStats(startDate, endDate) {
+  try {
+    const total = await prisma.reviewModeration.count({
+      where: { moderatedAt: { gte: startDate, lte: endDate } },
+    });
 
-// console.log(" Test 3: Harsh negative review ");
-// await moderateReview(
-//   "This book sucks! Complete waste of time. Author doesn't know how to write."
-// );
+    const approved = await prisma.reviewModeration.count({
+      where: {
+        moderatedAt: { gte: startDate, lte: endDate },
+        isAccepted: true,
+      },
+    });
+
+    const avgScore = await prisma.reviewModeration.aggregate({
+      where: { moderatedAt: { gte: startDate, lte: endDate } },
+      _avg: { score: true },
+    });
+
+    return {
+      totalReviews: total,
+      approvedCount: approved,
+      rejectedCount: total - approved,
+      approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0,
+      averageScore: Math.round(avgScore._avg.score || 0),
+    };
+  } catch (error) {
+    console.error("Get stats failed:", error);
+    return null;
+  }
+}
+
+// close database connection
+process.on("beforeExit", async () => {
+  await prisma.$disconnect();
+});

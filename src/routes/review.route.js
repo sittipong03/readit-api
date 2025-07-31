@@ -4,7 +4,10 @@ import {
   authMiddleware,
   isReviewOwner,
 } from "../middleware/auth.middleware.js";
-import { validateReview } from "../middleware/validateReview.js";
+import {
+  validateReview,
+  validateReviewId,
+} from "../middleware/validateReview.js";
 
 const reviewRoute = express.Router();
 
@@ -30,4 +33,9 @@ reviewRoute.delete(
   reviewController.deleteReview
 );
 
-export default reviewRoute;
+// Moderation route
+reviewRoute.post(
+  "/review/:reviewId",
+  validateReviewId,
+  reviewController.moderateReview
+);

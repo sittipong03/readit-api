@@ -52,7 +52,7 @@ authRoute.get(
     }
   }
 );
-//////////
+
 authRoute.get("/test", authMiddleware, (req, res) => {
   // ต้องใช้ middleware เพื่อตรวจสอบ authentication
   res.json({
@@ -65,6 +65,7 @@ authRoute.get("/logout", (req, res) => {
   res.logout();
   res.redirect("http://localhost:6500/api/auth");
 });
+//////////
 
 authRoute.post(
   "/register",
