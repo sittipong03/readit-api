@@ -12,6 +12,10 @@ import {
 const reviewRoute = express.Router();
 
 reviewRoute.get("/", reviewController.testGet);
+
+// Moderation route
+reviewRoute.post("/moderate-review", reviewController.moderateReviewController);
+
 reviewRoute.post(
   "/:bookId",
   authMiddleware,
@@ -33,9 +37,4 @@ reviewRoute.delete(
   reviewController.deleteReview
 );
 
-// Moderation route
-reviewRoute.post(
-  "/review/:reviewId",
-  validateReviewId,
-  reviewController.moderateReview
-);
+export default reviewRoute;

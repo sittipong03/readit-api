@@ -47,7 +47,6 @@ app.use("/api/affiliate", affiliateRoute);
 app.use("/api/notifications", notificationRoute);
 app.use("/api", followerRoute);
 
-
 //404
 app.use(notFoundMiddleware);
 //ErrorHandling

@@ -1,7 +1,8 @@
 import createError from "../utils/create-error.util.js";
 
 export function validateReview(req, res, next) {
-  const { title, content, reviewPoint, bookId } = req.body;
+  const { title, content, reviewPoint } = req.body;
+  const { bookId } = req.params;
 
   if (req.method === "POST") {
     if (!bookId) {

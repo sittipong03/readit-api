@@ -9,6 +9,7 @@ dotenv.config();
 
 export async function createReview(req, res) {
   const { bookId } = req.params;
+  console.log("bookId:", bookId);
   const { title, content, reviewPoint } = req.body;
   const userId = req.user.id;
 
@@ -244,15 +245,35 @@ Return your decision as JSON:
   }
 };
 
-export async function getHistory(reviewId) {
+export async function moderateReviewController(req, res) {
+  const { reviewId, content } = req.body;
+
   try {
-    return await prisma.reviewModeration.findMany({
-      where: { reviewId },
-      orderBy: { moderatedAt: "desc" },
+    // Validation
+    if (!reviewId || !content) {
+      return res.status(400).json({
+        message: "reviewId and content are required",
+      });
+    }
+
+    // เรียกใช้ AI moderation โดยตรง
+    const result = await moderateReview(reviewId, content);
+
+    if (!result) {
+      return res.status(500).json({
+        message: "Failed to moderate review",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Review moderated successfully",
+      result,
     });
   } catch (error) {
-    console.error("Get history failed:", error);
-    return [];
+    console.error("Error moderating review:", error);
+    return res.status(500).json({
+      message: "Failed to moderate review",
+    });
   }
 }
 
