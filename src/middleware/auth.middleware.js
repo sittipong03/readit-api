@@ -33,7 +33,7 @@ export function authMiddleware(req, res, next) {
       console.log("Decoded token", decoded);
       console.log("User object", decoded.user);
 
-      req.user = decoded.user;
+      req.user = decoded.user ?? decoded;
 
       next();
     });

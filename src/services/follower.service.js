@@ -5,6 +5,9 @@ export async function followUser(followerId, targetUserId) {
   if (followerId === targetUserId) {
     createError(400, "ไม่สามารถติดตามตัวเองได้");
   }
+
+  console.log("3. Entering followUser service...");
+
   const newFollow = await prisma.follow
     .create({
       data: {

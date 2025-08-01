@@ -25,7 +25,7 @@ export async function register(req, res, next) {
       return createError(400, "Email already exist");
     }
 
-    const hashPassword = await bcryptjs.hashSync(password, 10);
+    const hashPassword = await bcryptjs.hash(password, 10);
     const newUser = await authService.createNewUser(name, email, hashPassword);
 
     const token = jwt.sign(
@@ -117,6 +117,7 @@ export async function login(req, res, next) {
     };
 
     console.log("Token payload:", payload);
+    console.log("Key ที่ใช้สร้าง Token:", process.env.JWT_SECRET_KEY);
     const generateToken = jwt.sign(
       {
         user: {
@@ -133,6 +134,10 @@ export async function login(req, res, next) {
 
     res.json({
       token: generateToken,
+      userId: user.id,
+      role: user.role,
+      user: user.name
+
     });
   } catch (err) {
     next(err);

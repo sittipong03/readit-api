@@ -1,6 +1,6 @@
 import { tr } from "@faker-js/faker";
 import prisma from "../config/prisma.config.js";
-import { searchBooks } from "../middleware/ai.middleware.js";
+import { searchBooks, doYouKnow, recommandBooks } from "../middleware/ai.middleware.js";
 
 
 // book service section 
@@ -19,6 +19,40 @@ export async function searchBookByAI(userInfo) {
   });
 }
 
+export async function aiDoYouKnow(bookId) {
+    const selectBook = await prisma.book.findUnique({
+        where: {
+            id: bookIdgit
+        }
+    });
+    const aiDoYouKnow = await doYouKnow(selectBook.title);
+    console.log(aiDoYouKnow);
+    const updateBook = await prisma.book.update({
+        where: { id: bookId },
+        data: { aiSuggestion: aiDoYouKnow }
+    });
+
+    return updateBook;
+}
+
+export async function aiSuggestion(bookId) {
+    const selectBook = await prisma.book.findUnique({
+        where: {
+            id: bookId
+        }
+    });
+
+    const findRecommandBook = recommandBooks(selectBook.searchKey);
+    const booksArr = findRecommandBook.split("|");
+    return await prisma.book.findMany({
+        where: {
+            OR: booksArr.map((book) => ({
+                searchKey: { contain: book }
+            }))
+        }
+    })
+}
+
 export async function getBooks() {
   return await prisma.book.findMany({
     select: {
@@ -26,6 +60,7 @@ export async function getBooks() {
       id: true,
       title: true,
       description: true,
+      aiSuggestion:true,
       ratingCount: true,
       reviewCount: true,
       averageRating: true,
@@ -99,6 +134,7 @@ export async function getBookById(id) {
       //--- เลือก field จากโมเดล Book ---
       id: true,
       title: true,
+      aiSuggestion:true,
       description: true,
       ratingCount: true,
       reviewCount: true,
@@ -166,6 +202,9 @@ export async function getBookById(id) {
     },
   });
 }
+
+
+
 export async function getBookByName(name) {
   return await prisma.author.findUnique({ where: { name } })
 }
@@ -394,4 +433,3 @@ export async function deleteUserShelf(userId, bookId, shelfType) {
     }
   });
 }
-

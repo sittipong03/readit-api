@@ -5,6 +5,10 @@ export async function followUser(req, res, next) {
     const followerId = req.user.id;
     const { targetUserId } = req.body;
 
+    console.log("--- Follow Request Received ---");
+    console.log("1. Follower ID (from Token):", followerId);
+    console.log("2. Target User ID (from Body):", targetUserId);
+
     await followerService.followUser(followerId, targetUserId);
     res.status(200).json({ message: `ติดตามผู้ใช้ ${targetUserId} สำเร็จ` });
   } catch (error) {

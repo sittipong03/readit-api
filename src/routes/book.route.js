@@ -1,5 +1,6 @@
 import express from "express"
 import * as bookController from "../controllers/book.controller.js"
+import uploadPic from "../middleware/upload-pic.middleware.js"
 
 
 const bookRoute = express.Router()
@@ -21,6 +22,9 @@ bookRoute.delete('/authors/:id' , bookController.deleteAuthor) // need authen ch
 // Search book by AI
 bookRoute.post("/search", bookController.searchBookByAI)
 
+// Id
+bookRoute.get('/:id', bookController.getBookById)
+
 // tags
 bookRoute.get('/tags' , bookController.getTags)
 bookRoute.post('/tags' , bookController.createTag) // need authen check admin middleware
@@ -29,7 +33,7 @@ bookRoute.delete('/tags/:id' , bookController.deleteTag) // need authen check ad
 
 /// book section
 bookRoute.get('/' , bookController.getBooks)
-bookRoute.post('/' , bookController.createBook) // need authen check admin middleware
+bookRoute.post('/' ,bookController.createBook) // need authen check admin middleware
 bookRoute.get('/search' , bookController.searchKeywordBooks)
 bookRoute.get('/:id' , bookController.getBookById)
 bookRoute.patch('/:id' , bookController.updateBook) // need authen check admin middleware

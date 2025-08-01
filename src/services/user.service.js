@@ -22,3 +22,18 @@ export async function getUserById(id) {
   });
   return user;
 }
+
+
+export async function postAddressById(userid , data){
+  return await prisma.userAddress.create({
+    where:{userid},
+    data
+  })
+}
+
+export async function patchAddressById (userid , data){
+  return await prisma.userAddress.update({
+    where:{userid},
+    data
+  })
+}
