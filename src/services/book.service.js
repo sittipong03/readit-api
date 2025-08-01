@@ -25,11 +25,13 @@ export async function aiDoYouKnow(bookId) {
             id: bookIdgit
         }
     });
-    const aiDoYouKnow = doYouKnow(selectBook.searchKey);
+    const aiDoYouKnow = await doYouKnow(selectBook.title);
+    console.log(aiDoYouKnow);
     const updateBook = await prisma.book.update({
         where: { id: bookId },
-        data: { aiDoYouKnow: aiDoYouKnow }
+        data: { aiSuggestion: aiDoYouKnow }
     });
+
     return updateBook;
 }
 
