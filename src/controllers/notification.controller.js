@@ -1,14 +1,12 @@
 import prisma from "../config/prisma.config.js";
+import createError from "../utils/create-error.util.js";
 
 export const getAllNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
 
     if (!userId) {
-      return res.status(400).json({
-        success: false,
-        error: "userId is required",
-      });
+      return createError(400, "User ID is required");
     }
 
     const notifications = await prisma.notification.findMany({
@@ -41,10 +39,6 @@ export const getAllNotifications = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getAllNotifications:", error);
-    return res.status(500).json({
-      success: false,
-      error: "Internal server error",
-      message: error.message,
-    });
+    return createError(500, "Internal server error");
   }
 };

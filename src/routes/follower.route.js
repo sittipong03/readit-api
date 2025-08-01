@@ -1,6 +1,6 @@
 import express from "express";
 import * as followerController from "../controllers/follower.controller.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const followerRoute = express.Router();
 

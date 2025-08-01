@@ -133,6 +133,10 @@ export async function login(req, res, next) {
 
     res.json({
       token: generateToken,
+      userId: user.id,
+      role: user.role,
+      user: user.name
+
     });
   } catch (err) {
     next(err);
@@ -146,13 +150,11 @@ export async function getMe(req, res, next) {
     console.log("req.user.id:", req.user?.id); // Debug
 
     if (!req.user) {
-      return res
-        .status(401)
-        .json({ error: "User object not found in request" });
+      return createError(401, "User not authenticated");
     }
 
     if (!req.user.id) {
-      return res.status(401).json({ error: "User ID not found in token" });
+      return createError(401, "User ID not found in request");
     }
 
     const userId = req.user.id;

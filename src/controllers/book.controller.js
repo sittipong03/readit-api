@@ -176,7 +176,6 @@ export async function updateBook(req, res, next) {
             authorId, name, bio, profileImage,
             editionId, isbn, pages, publishedYear, coverImage, isLatest,
             tagIds } = req.body
-
         const existBook = await bookService.getBookById(id);
         if (!existBook) {
             // แก้ไขกลับไปใช้ createError ตามที่ผู้ใช้ต้องการ
