@@ -67,7 +67,9 @@ export async function getBookById(req, res, next) {
       createError(404, "Book is not found");
     }
     // ต้องปั้นใหม่ ให้สวย ส่ง front end รอดูว่า front ต้องการอะไรไปโชว์บ้าง ควรจะเหมือนกับ getBooks
+    // title, author, cover, price, rating
     res.json(data);
+    console.log(data)
   } catch (error) {
     next(error);
   }
@@ -480,6 +482,7 @@ export async function getTags(req, res, next) {
     next(error);
   }
 }
+
 export async function createTag(req, res, next) {
   try {
     const { name, description } = req.body;

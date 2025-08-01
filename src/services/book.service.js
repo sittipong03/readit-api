@@ -125,6 +125,7 @@ export async function getBooks() {
     },
   });
 }
+
 export async function getBookById(id) {
   return await prisma.book.findUnique({
     where: { id },
