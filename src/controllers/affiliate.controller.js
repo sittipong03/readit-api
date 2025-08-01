@@ -3,7 +3,7 @@ import * as affiliateService from "../services/affiliate.service.js";
 
 export async function registerAffiliate(req, res, next) {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { accountDetails, methodType } = req.body;
 
     if (!accountDetails || !methodType) {
@@ -23,7 +23,7 @@ export async function registerAffiliate(req, res, next) {
 
 export async function getSelf(req, res, next) {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const affiliateInfo = await affiliateService.getAffiliate(userId);
     res.json({ affiliate: affiliateInfo });
   } catch (error) {

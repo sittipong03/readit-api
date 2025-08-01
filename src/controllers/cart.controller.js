@@ -3,7 +3,7 @@ import * as cartService from "../services/cart.service.js";
 
 export async function getCart(req, res, next) {
   try {
-    const userId = req.user.id; //รอ authMid
+    const userId = req.user.id;
 
     const cart = await cartService.getCart(userId);
     res.json({ cart });
@@ -14,7 +14,7 @@ export async function getCart(req, res, next) {
 
 export async function addToCart(req, res, next) {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const { productId, quantity } = req.body;
 
@@ -36,7 +36,7 @@ export async function addToCart(req, res, next) {
 
 export async function updateCartItemQuantity(req, res, next) {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { itemId } = req.params;
     const { quantity } = req.body;
 

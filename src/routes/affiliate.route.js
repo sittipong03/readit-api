@@ -5,6 +5,6 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 const affiliateRoute = express.Router();
 
 affiliateRoute.post("/", authMiddleware, affiliateController.registerAffiliate);
-affiliateRoute.get("/:userId", authMiddleware, affiliateController.getSelf);
+affiliateRoute.get("/", authMiddleware, affiliateController.getSelf);
 
 export default affiliateRoute;
