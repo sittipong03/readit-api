@@ -15,39 +15,49 @@ export async function searchBookByAI(req, res, next) {
   } catch (error) {
     next(error);
   }
+};
+
+export async function aiDoYouKnow(req, res, next) {
+  try {
+    const bookName = req.body;
+    const data =  await bookService.aiDoYouKnow(bookName)
+    res.status(200).json({book: data});
+  } catch (error) {
+    next(error)
+  }
 }
 
-export async function aiDoYouKnow(bookId) {
-    const selectBook = await prisma.book.findUnique({
-        where: {
-            id: bookId
-        }
-    });
-    const aiDoYouKnow = doYouKnow(selectBook.searchKey);
-    const updateBook = await prisma.book.update({
-        where: { id: bookId },
-        data: { aiDoYouKnow: aiDoYouKnow }
-    });
-    return updateBook;
-}
+// export async function aiDoYouKnow(bookId) {
+//     const selectBook = await prisma.book.findUnique({
+//         where: {
+//             id: bookId
+//         }
+//     });
+//     const aiDoYouKnow = doYouKnow(selectBook.searchKey);
+//     const updateBook = await prisma.book.update({
+//         where: { id: bookId },
+//         data: { aiDoYouKnow: aiDoYouKnow }
+//     });
+//     return updateBook;
+// }
 
-export async function aiSuggestion(bookId) {
-    const selectBook = await prisma.book.findUnique({
-        where: {
-            id: bookId
-        }
-    });
+// export async function aiSuggestion(bookId) {
+//     const selectBook = await prisma.book.findUnique({
+//         where: {
+//             id: bookId
+//         }
+//     });
 
-    const findRecommandBook = recommandBooks(selectBook.searchKey);
-    const booksArr = findRecommandBook.split("|");
-    return await prisma.book.findMany({
-        where: {
-            OR: booksArr.map((book) => ({
-                searchKey: { contain: book }
-            }))
-        }
-    })
-}
+//     const findRecommandBook = recommandBooks(selectBook.searchKey);
+//     const booksArr = findRecommandBook.split("|");
+//     return await prisma.book.findMany({
+//         where: {
+//             OR: booksArr.map((book) => ({
+//                 searchKey: { contain: book }
+//             }))
+//         }
+//     })
+// }
 
 
 export async function getBooks(req, res, next) {
@@ -62,6 +72,7 @@ export async function getBooks(req, res, next) {
 export async function getBookById(req, res, next) {
   try {
     const id = req.params.id;
+    const doYouKnow = await bookService.aiDoYouKnow(id)
     const data = await bookService.getBookById(id);
     if (!data) {
       createError(404, "Book is not found");
