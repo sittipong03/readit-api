@@ -76,3 +76,37 @@ export async function deleteUser(req, res, next) {
     next(error);
   }
 }
+
+export async function updateUserProfile(req, res, next) {
+  try {
+    const { id } = req.params;
+    const dataFromFrontend = req.body;
+
+    // Call the service layer to handle all the logic
+    const updatedUser = await userService.updateUserProfileAndAddress(
+      id,
+      dataFromFrontend
+    );
+
+    res.json({
+      message: "อัปเดตข้อมูลโปรไฟล์สำเร็จ",
+      user: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updatePassword(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    // เรียกใช้ service เพื่อจัดการ logic ทั้งหมด
+    await userService.changeUserPassword(id, { currentPassword, newPassword });
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+}

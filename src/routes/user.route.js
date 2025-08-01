@@ -14,5 +14,12 @@ userRoute.delete(
   isOwnerOrAdmin,
   userController.deleteUser
 );
+userRoute.patch(
+  "/:id/profile",
+  authMiddleware,
+  userController.updateUserProfile
+);
+
+userRoute.patch("/:id/password", authMiddleware, userController.updatePassword);
 
 export default userRoute;

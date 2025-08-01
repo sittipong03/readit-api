@@ -171,6 +171,7 @@ export async function getMe(req, res, next) {
         followerCount: true,
         createdAt: true,
         updatedAt: true,
+        userAddress: true,
       },
     });
 

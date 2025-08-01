@@ -28,7 +28,7 @@ model User {
   role                  Role            @default(USER)
   emailVerified         Boolean         @default(false)
   userScore             Int             @default(0)
-  latestUserScoreUpdate DateTime
+  latestUserScoreUpdate DateTime?
   isBan                 Boolean         @default(false)
   reviewCount           Int             @default(0)
   followerCount         Int             @default(0)
@@ -437,8 +437,8 @@ model Payment {
 
 model UserAddress {
   id           String   @id @default(cuid())
-  addressLine1 String
-  addressLine2 String?
+  receiverName String
+  address      String
   city         String
   province     String
   postalCode   String
