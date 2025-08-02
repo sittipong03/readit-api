@@ -4,11 +4,18 @@ import {
   authMiddleware,
   isReviewOwner,
 } from "../middleware/auth.middleware.js";
-import { validateReview } from "../middleware/validateReview.js";
+import {
+  validateReview,
+  validateReviewId,
+} from "../middleware/validateReview.js";
 
 const reviewRoute = express.Router();
 
 reviewRoute.get("/", reviewController.testGet);
+
+// Moderation route
+reviewRoute.post("/moderate-review", reviewController.moderateReviewController);
+
 reviewRoute.post(
   "/:bookId",
   authMiddleware,

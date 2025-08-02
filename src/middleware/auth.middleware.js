@@ -6,14 +6,24 @@ export function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
     console.log("Authorization header", authHeader);
 
-    if (!authHeader?.startsWith("Bearer ")) {
-      console.log("No valid bearer token found");
-      return createError(401, "Token missing");
+    let token = null;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+      console.log("Extracted token", token);
     }
 
-    const token = authHeader.split(" ")[1];
-    console.log("Extracted token", token);
+    // ✅ ถ้าไม่มี Bearer token ให้ลองหาจาก query parameter
+    if (!token && req.query.token) {
+      token = req.query.token;
+      console.log("Token from query", token);
+    }
 
+    // ✅ ถ้าไม่มี token เลย ถึงจะ throw error
+    if (!token) {
+      console.log("No valid bearer token found");
+      throw createError("Token missing", 401);
+    }
     jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
       if (error) {
         console.log("JWT verification error", error);

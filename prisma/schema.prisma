@@ -27,7 +27,7 @@ model User {
   name                  String?
   role                  Role            @default(USER)
   emailVerified         Boolean         @default(false)
-  userScore             Int             @default(0)
+  userScore             Int?            @default(0)
   latestUserScoreUpdate DateTime?
   isBan                 Boolean         @default(false)
   reviewCount           Int             @default(0)
@@ -274,12 +274,43 @@ model Review {
   comments Comment[]
   likes    LikeReviews[]
 
+  moderation ReviewModeration?
+
   userId String
   user   User   @relation(fields: [userId], references: [id])
   bookId String
   book   Book   @relation(fields: [bookId], references: [id])
 
   @@unique([userId, bookId])
+}
+
+model ReviewModeration {
+  id          String            @id @default(cuid())
+  score       Int
+  reason      String            @db.Text
+  quality     ModerationQuality
+  feedback    String?           @db.Text
+  isAccepted  Boolean
+  moderatedAt DateTime          @default(now())
+
+  reviewId String @unique // 1 review ต่อ 1 moderation
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([moderatedAt])
+  @@index([score])
+  @@index([quality])
+}
+
+enum ModerationQuality {
+  EXCEPTIONAL // 85-100
+  HIGH // 70-84
+  GOOD // 60-69
+  BORDERLINE // 50-59
+  POOR // 0-49
+  ERROR // เกิดข้อผิดพลาดในการตรวจสอบ
 }
 
 model Comment {
@@ -448,7 +479,7 @@ model UserAddress {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  userId String @unique 
+  userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 }
 
