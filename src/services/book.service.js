@@ -22,7 +22,7 @@ export async function searchBookByAI(userInfo) {
 export async function aiDoYouKnow(bookId) {
     const selectBook = await prisma.book.findUnique({
         where: {
-            id: bookIdgit
+            id: bookId
         }
     });
     const aiDoYouKnow = doYouKnow(selectBook.searchKey);

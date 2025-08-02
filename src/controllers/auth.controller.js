@@ -17,7 +17,13 @@ export async function testGetUser(req, res, next) {
 
 export async function register(req, res, next) {
   try {
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
+    let { name } = req.body
+    if(!name){
+      const addname = email.split("@")[0]
+      console.log(addname)
+      name = addname
+    }
 
     const checkEmail = await authService.getUserByEmail(email);
 
