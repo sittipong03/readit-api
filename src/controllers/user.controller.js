@@ -110,3 +110,29 @@ export async function updatePassword(req, res, next) {
     next(error);
   }
 }
+
+export const updateAvatar = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { avatarUrl } = req.body;
+
+    if (!avatarUrl) {
+      return next(createError(400, "avatarUrl is required"));
+    }
+
+    const updatedUser = await userService.updateUserAvatar(userId, avatarUrl);
+    res.json({ message: "Avatar updated successfully", user: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteCurrentUser = async (req, res, next) => {
+  try {
+    const userIdToDelete = req.user.id;
+    await userService.deleteUserAccount(userIdToDelete);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};

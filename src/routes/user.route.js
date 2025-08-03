@@ -21,5 +21,7 @@ userRoute.patch(
 );
 
 userRoute.patch("/:id/password", authMiddleware, userController.updatePassword);
+userRoute.delete("/", authMiddleware, userController.deleteCurrentUser);
+userRoute.patch("/avatar", authMiddleware, userController.updateAvatar);
 
 export default userRoute;

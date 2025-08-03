@@ -6,6 +6,11 @@ const orderRoute = express.Router();
 
 // orderRoute.get("/", orderController.testGet);
 orderRoute.post("/", authMiddleware, orderController.createOrder);
-orderRoute.get("/:id", authMiddleware, orderController.getOrderById);
+orderRoute.get("/", authMiddleware, orderController.getMyOrders);
+orderRoute.get(
+  "/:id",
+  authMiddleware,
+  orderController.getOrderDetailController
+);
 
 export default orderRoute;
