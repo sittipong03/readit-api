@@ -356,7 +356,7 @@ model Product {
   // One Piece เล่ม 1 โดย Oda : MAN-ODA-ONEP-001-PB
   // Atomic Habits (Business) โดย Clear : BIZ-CLEA-ATOM-000-PB
   // The Lord of the Rings (Fiction) : FIC-TOLK-LOTR-000-HC
-  price Decimal
+  price Decimal @db.Decimal(10, 2)
 
   stockQuantity Int      @default(0)
   createdAt     DateTime @default(now())

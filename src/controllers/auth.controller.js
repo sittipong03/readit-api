@@ -19,7 +19,7 @@ export async function register(req, res, next) {
   try {
     const { email, password } = req.body;
     let { name } = req.body
-    if(!name){
+    if (!name) {
       const addname = email.split("@")[0]
       console.log(addname)
       name = addname
@@ -49,7 +49,8 @@ export async function register(req, res, next) {
       },
     });
 
-    const verificationLink = `${process.env.URL}/api/auth/verification/${token}`;
+    const verificationLink = `${process.env.URL_BACKEND}/api/auth/verification/${token}`;
+    console.log("verificationLink" , verificationLink)
 
     await transporter.sendMail({
       to: email,
@@ -60,7 +61,7 @@ export async function register(req, res, next) {
       message: "Verification email has been sent to your email",
       newUser,
     });
-    res.status(200).json({ message: "Create account success", newUser });
+    // res.status(200).json({ message: "Create account success", newUser });
   } catch (error) {
     next(error);
   }
@@ -69,11 +70,13 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   try {
     const { email, password } = req.body;
+    console.log(req.body)
     const user = await authService.getUserByEmail(email);
+    console.log("user",user)
     if (!user) {
       return createError(400, "User not found");
     }
-    if (user.isVerify === false) {
+    if (user.emailVerified === false) {
       const token = jwt.sign(
         { user: user.id, email: user.email },
         process.env.JWT_SECRET_KEY || "tirefg",
@@ -88,7 +91,7 @@ export async function login(req, res, next) {
           pass: process.env.EMAIL_PASS,
         },
       });
-      const verificationLink = `${process.env.URL}/auth/verification/${token}`;
+      const verificationLink = `${process.env.URL_BACKEND}/api/auth/verification/${token}`;
 
       await transporter.sendMail({
         to: email,
@@ -330,11 +333,36 @@ export async function verification(req, res, next) {
         id: headers.user,
       },
       data: {
-        isVerify: true,
+        emailVerified: true,
       },
     });
     res.redirect("http://localhost:5173/login");
   } catch (error) {
     next(error);
   }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const { id } = req.params
+
+    const idUserExist = await authService.getUserById(id)
+    console.log(idUserExist)
+
+    if (!idUserExist) {
+      createError(404, "User not found")
+    }
+
+    await authService.deleteUser(id)
+
+    res.json({message : `Delete user ${idUserExist.email} success `})
+
+  } catch (error) {
+    next(error)
+
+  }
+
+
+
+
 }
