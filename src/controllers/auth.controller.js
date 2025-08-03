@@ -127,6 +127,7 @@ export async function login(req, res, next) {
 
     console.log("Token payload:", payload);
     console.log("Key ที่ใช้สร้าง Token:", process.env.JWT_SECRET_KEY);
+
     const generateToken = jwt.sign(
       {
         user: {
@@ -206,10 +207,7 @@ export function logout(req, res) {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "No token provided",
-      });
+      return createError(401, "No token provided");
     }
     res.clearCookie("authToken");
     res.json({
@@ -289,14 +287,15 @@ export async function resetPassword(req, res, next) {
       user.password
     );
     if (!isValidPassword) {
-      return res.status(400).json({ error: "Current password is incorrect" });
+      return createError(400, "Current password is incorrect");
     }
 
     const isSamePassword = await bcryptjs.compare(newPassword, user.password);
     if (isSamePassword) {
-      return res.status(400).json({
-        error: "New password must be different from current password",
-      });
+      return createError(
+        400,
+        "New password cannot be the same as current password"
+      );
     }
 
     const hashedNewPassword = await bcryptjs.hash(newPassword, 10);
