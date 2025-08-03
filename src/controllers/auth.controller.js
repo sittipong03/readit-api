@@ -145,8 +145,7 @@ export async function login(req, res, next) {
       token: generateToken,
       userId: user.id,
       role: user.role,
-      user: user.name
-
+      user: user.name,
     });
   } catch (err) {
     next(err);
@@ -184,6 +183,8 @@ export async function getMe(req, res, next) {
         followerCount: true,
         createdAt: true,
         updatedAt: true,
+        avatarUrl: true,
+        userAddress: true,
       },
     });
 

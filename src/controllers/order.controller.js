@@ -30,12 +30,25 @@ export async function createOrder(req, res, next) {
   }
 }
 
-export async function getOrderById(req, res, next) {
+export const getMyOrders = async (req, res, next) => {
   try {
-    const orderId = req.params.id;
-    const order = await orderService.getOrderById(orderId);
-    res.json({ order });
+    const userId = req.user.id; // ดึง ID จาก token
+    const orders = await orderService.getOrdersByUserId(userId);
+    res.json({ orders });
   } catch (error) {
     next(error);
+  }
+};
+
+export async function getOrderDetailController(req, res, next) {
+  try {
+    console.log("Entered getOrderDetailController, user:", req.user);
+    const orderId = req.params.id;
+    const userId = req.user.id; // จาก auth middleware
+    const order = await orderService.getOrderDetail(orderId, userId);
+    res.json({ order });
+  } catch (err) {
+    console.log("getOrderDetailController error:", err);
+    next(err);
   }
 }

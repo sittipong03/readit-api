@@ -469,7 +469,7 @@ model Payment {
 model UserAddress {
   id           String   @id @default(cuid())
   receiverName String
-  phoneNumber  String
+  phoneNumber  String?
   address      String
   city         String
   province     String

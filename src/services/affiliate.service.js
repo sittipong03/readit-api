@@ -33,10 +33,8 @@ export async function getAffiliate(userId) {
   const affiliate = await prisma.affiliate.findUnique({
     where: { userId: userId },
     include: {
-      commissions: {
-        orderBy: { createdAt: "desc" },
-        take: 10,
-      },
+      order: true, // ต้องดึง orders มา
+      commissions: true, // ดึง commissions มาเพื่อคำนวณ pending / paid
     },
   });
 
