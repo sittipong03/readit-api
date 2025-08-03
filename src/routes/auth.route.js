@@ -93,6 +93,20 @@ authRoute.get(
 );
 
 ////////////////////////////////////////////////////////////
+passport.authenticate(
+  "google",
+  { failureRedirect: "/api/auth" },
+  (req, res) => {
+    res.redirect("http://localhost:6500/api/auth/test");
+  }
+);
+authRoute.get("/test", (req, res) => {
+  res.send(req.user.displayName + " is logged in");
+});
+authRoute.get("/logout", (req, res) => {
+  res.logout();
+  res.redirect("http://localhost:6500/api/auth");
+});
 
 authRoute.post(
   "/register",
@@ -113,5 +127,7 @@ authRoute.post(
   validate(validateResetToken),
   authController.resetPassword
 );
+authRoute.get("/verification/:token", authController.verification);
+authRoute.delete("/:id", authController.deleteUser); // for quick test register and send node mailer
 
 export default authRoute;
