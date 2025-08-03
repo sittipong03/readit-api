@@ -13,9 +13,10 @@ export async function createReview(req, res) {
   const {
     title,
     content,
-    reviewPoint
+    reviewPoint,
+    userId
   } = req.body;
-  const userId = req.user.id;
+  // const userId = req.user.id;
 
   try {
     const review = await reviewService.createReviewService(userId, bookId, title, content, reviewPoint);
@@ -24,6 +25,7 @@ export async function createReview(req, res) {
       review
     });
   } catch (error) {
+    console.log(error);
     if (error.message === 'Review point must be between 1 and 5.') {
       return res.status(400).json({
         message: error.message
