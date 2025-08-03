@@ -1,5 +1,5 @@
 import express from "express";
-import passport from "../config/passport.config.js";
+// import passport from "../config/passport.config.js";
 import * as authController from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import {
@@ -17,20 +17,20 @@ const authRoute = express.Router();
 authRoute.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a>");
 });
-authRoute.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
-authRoute.get(
-  "/google/callback",
-  passport.authenticate(
-    "google",
-    { failureRedirect: "/api/auth" },
-    (req, res) => {
-      res.redirect("http://localhost:6500/api/auth/test");
-    }
-  )
-);
+// authRoute.get(
+//   "/google",
+//   passport.authenticate("google", { scope: ["profile", "email"] })
+// );
+// authRoute.get(
+//   "/google/callback",
+//   passport.authenticate(
+//     "google",
+//     { failureRedirect: "/api/auth" },
+//     (req, res) => {
+//       res.redirect("http://localhost:6500/api/auth/test");
+//     }
+//   )
+// );
 authRoute.get("/test", (req, res) => {
   res.send(req.user.displayName + " is logged in");
 });
