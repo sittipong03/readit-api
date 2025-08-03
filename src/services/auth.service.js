@@ -24,3 +24,11 @@ export async function getUserByEmail(email) {
   console.log("Found user:", user);
   return user;
 }
+
+export async function deleteUser(id){
+  return prisma.user.delete({where : {id}})
+}
+
+export async function getUserById(id){
+  return prisma.user.findUnique({where : {id}})
+}

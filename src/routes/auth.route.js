@@ -14,7 +14,6 @@ import { auth } from "google-auth-library";
 
 const authRoute = express.Router();
 
-// สำหรับทดสอบการ login ด้วย Google
 authRoute.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a>");
 });
@@ -24,48 +23,21 @@ authRoute.get(
 );
 authRoute.get(
   "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "/api/auth",
-    session: false,
-  }),
-  (req, res) => {
-    try {
-      // สร้าง JWT token
-      const token = jwt.sign(
-        {
-          user: {
-            id: req.user.id,
-            email: req.user.email,
-            name: req.user.name,
-            role: req.user.role || "USER",
-          },
-        },
-        process.env.JWT_SECRET_KEY,
-        { expiresIn: "24h" }
-      );
-
-      // ส่ง token ไปกับ redirect (สำหรับ testing)
-      res.redirect(`http://localhost:6500/api/auth/test?token=${token}`);
-    } catch (error) {
-      console.error("Token creation error:", error);
-      res.redirect("/api/auth?error=token_failed");
+  passport.authenticate(
+    "google",
+    { failureRedirect: "/api/auth" },
+    (req, res) => {
+      res.redirect("http://localhost:6500/api/auth/test");
     }
-  }
+  )
 );
-
-authRoute.get("/test", authMiddleware, (req, res) => {
-  // ต้องใช้ middleware เพื่อตรวจสอบ authentication
-  res.json({
-    message: `${req.user.name} is logged in`,
-    user: req.user,
-  });
+authRoute.get("/test", (req, res) => {
+  res.send(req.user.displayName + " is logged in");
 });
-
 authRoute.get("/logout", (req, res) => {
   res.logout();
   res.redirect("http://localhost:6500/api/auth");
 });
-//////////
 
 authRoute.post(
   "/register",
@@ -86,5 +58,8 @@ authRoute.post(
   validate(validateResetToken),
   authController.resetPassword
 );
+authRoute.get("/verification/:token" , authController.verification)
+authRoute.delete("/:id" , authController.deleteUser) // for quick test register and send node mailer
+
 
 export default authRoute;
