@@ -25,10 +25,12 @@ export async function getMe(req, res, next) {
 export async function updateUser(req, res, next) {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
 
-    if (updateData.password) {
+    if (updateData.password && updateData.password.trim() !== "") {
       updateData.password = await bcryptjs.hash(updateData.password, 10);
+    } else {
+      delete updateData.password;
     }
 
     const updatedUser = await prisma.user.update({
@@ -74,3 +76,63 @@ export async function deleteUser(req, res, next) {
     next(error);
   }
 }
+
+export async function updateUserProfile(req, res, next) {
+  try {
+    const { id } = req.params;
+    const dataFromFrontend = req.body;
+
+    // Call the service layer to handle all the logic
+    const updatedUser = await userService.updateUserProfileAndAddress(
+      id,
+      dataFromFrontend
+    );
+
+    res.json({
+      message: "อัปเดตข้อมูลโปรไฟล์สำเร็จ",
+      user: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updatePassword(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    // เรียกใช้ service เพื่อจัดการ logic ทั้งหมด
+    await userService.changeUserPassword(id, { currentPassword, newPassword });
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const updateAvatar = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { avatarUrl } = req.body;
+
+    if (!avatarUrl) {
+      return next(createError(400, "avatarUrl is required"));
+    }
+
+    const updatedUser = await userService.updateUserAvatar(userId, avatarUrl);
+    res.json({ message: "Avatar updated successfully", user: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteCurrentUser = async (req, res, next) => {
+  try {
+    const userIdToDelete = req.user.id;
+    await userService.deleteUserAccount(userIdToDelete);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};

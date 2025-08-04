@@ -17,7 +17,13 @@ export async function testGetUser(req, res, next) {
 
 export async function register(req, res, next) {
   try {
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
+    let { name } = req.body
+    if (!name) {
+      const addname = email.split("@")[0]
+      console.log(addname)
+      name = addname
+    }
 
     const checkEmail = await authService.getUserByEmail(email);
 
@@ -25,7 +31,7 @@ export async function register(req, res, next) {
       return createError(400, "Email already exist");
     }
 
-    const hashPassword = await bcryptjs.hashSync(password, 10);
+    const hashPassword = await bcryptjs.hash(password, 10);
     const newUser = await authService.createNewUser(name, email, hashPassword);
 
     const token = jwt.sign(
@@ -43,7 +49,8 @@ export async function register(req, res, next) {
       },
     });
 
-    const verificationLink = `${process.env.URL}/api/auth/verification/${token}`;
+    const verificationLink = `${process.env.URL_BACKEND}/api/auth/verification/${token}`;
+    console.log("verificationLink" , verificationLink)
 
     await transporter.sendMail({
       to: email,
@@ -54,7 +61,7 @@ export async function register(req, res, next) {
       message: "Verification email has been sent to your email",
       newUser,
     });
-    res.status(200).json({ message: "Create account success", newUser });
+    // res.status(200).json({ message: "Create account success", newUser });
   } catch (error) {
     next(error);
   }
@@ -63,11 +70,13 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   try {
     const { email, password } = req.body;
+    console.log(req.body)
     const user = await authService.getUserByEmail(email);
+    console.log("user",user)
     if (!user) {
       return createError(400, "User not found");
     }
-    if (user.isVerify === false) {
+    if (user.emailVerified === false) {
       const token = jwt.sign(
         { user: user.id, email: user.email },
         process.env.JWT_SECRET_KEY || "tirefg",
@@ -82,7 +91,7 @@ export async function login(req, res, next) {
           pass: process.env.EMAIL_PASS,
         },
       });
-      const verificationLink = `${process.env.URL}/auth/verification/${token}`;
+      const verificationLink = `${process.env.URL_BACKEND}/api/auth/verification/${token}`;
 
       await transporter.sendMail({
         to: email,
@@ -117,6 +126,7 @@ export async function login(req, res, next) {
     };
 
     console.log("Token payload:", payload);
+    console.log("Key ที่ใช้สร้าง Token:", process.env.JWT_SECRET_KEY);
 
     const generateToken = jwt.sign(
       {
@@ -134,6 +144,9 @@ export async function login(req, res, next) {
 
     res.json({
       token: generateToken,
+      userId: user.id,
+      role: user.role,
+      user: user.name,
     });
   } catch (err) {
     next(err);
@@ -147,13 +160,11 @@ export async function getMe(req, res, next) {
     console.log("req.user.id:", req.user?.id); // Debug
 
     if (!req.user) {
-      return res
-        .status(401)
-        .json({ error: "User object not found in request" });
+      return createError(401, "User not authenticated");
     }
 
     if (!req.user.id) {
-      return res.status(401).json({ error: "User ID not found in token" });
+      return createError(401, "User ID not found in request");
     }
 
     const userId = req.user.id;
@@ -173,6 +184,8 @@ export async function getMe(req, res, next) {
         followerCount: true,
         createdAt: true,
         updatedAt: true,
+        avatarUrl: true,
+        userAddress: true,
       },
     });
 
@@ -194,10 +207,7 @@ export function logout(req, res) {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "No token provided",
-      });
+      return createError(401, "No token provided");
     }
     res.clearCookie("authToken");
     res.json({
@@ -240,55 +250,65 @@ export async function forgotPassword(req, res, next) {
       return createError(400, "User not found");
     }
 
-    const token = crypto.randomBytes(20).toString("hex");
-    const expiry = new Date(Date.now() + 3600000);
-
-    await prisma.user.update({
-      where: { email },
-      data: {
-        resettoken: token,
-        resetTokenExpire: expiry,
+    const resetToken = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        purpose: "password-reset",
       },
+      process.env.JWT_SECRET_KEY + user.password,
+      { expiresIn: "1h" }
+    );
+
+    await sendResetEmail(email, resetToken);
+    res.status(200).json({
+      success: true,
+      message: "Password reset link sent",
     });
-    await sendResetEmail(email, token);
-    res
-      .status(200)
-      .json({ success: true, message: "Password reset link sent" });
   } catch (error) {
     next(error);
   }
 }
-
 export async function resetPassword(req, res, next) {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
 
-    const user = await prisma.user.findFirst({
-      where: {
-        resettoken: token,
-        resettokenExpire: {
-          gt: new Date(),
-        },
-      },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
     if (!user) {
-      return createError(404, "Invalid Token");
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const hashedPassword = await bcryptjs.hashSync(password, 10);
+    const isValidPassword = await bcryptjs.compare(
+      currentPassword,
+      user.password
+    );
+    if (!isValidPassword) {
+      return createError(400, "Current password is incorrect");
+    }
+
+    const isSamePassword = await bcryptjs.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return createError(
+        400,
+        "New password cannot be the same as current password"
+      );
+    }
+
+    const hashedNewPassword = await bcryptjs.hash(newPassword, 10);
 
     await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        resettoken: null,
-        resettokenExpire: null,
-      },
+      where: { id: userId },
+      data: { password: hashedNewPassword },
     });
 
-    res.json({ message: "Your password has been successfully reset." });
+    res.json({
+      success: true,
+      message: "Password updated successfully!",
+    });
   } catch (error) {
     next(error);
   }
@@ -313,11 +333,31 @@ export async function verification(req, res, next) {
         id: headers.user,
       },
       data: {
-        isVerify: true,
+        emailVerified: true,
       },
     });
     res.redirect("http://localhost:5173/login");
   } catch (error) {
     next(error);
+  }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const { id } = req.params
+
+    const idUserExist = await authService.getUserById(id)
+    console.log(idUserExist)
+
+    if (!idUserExist) {
+      createError(404, "User not found")
+    }
+
+    await authService.deleteUser(id)
+
+    res.json({message : `Delete user ${idUserExist.email} success `})
+
+  } catch (error) {
+    next(error)
   }
 }
