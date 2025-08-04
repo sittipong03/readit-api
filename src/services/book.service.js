@@ -20,37 +20,37 @@ export async function searchBookByAI(userInfo) {
 }
 
 export async function aiDoYouKnow(bookId) {
-    const selectBook = await prisma.book.findUnique({
-        where: {
-            id: bookId
-        }
-    });
-    const aiDoYouKnow = await doYouKnow(selectBook.title);
-    console.log(aiDoYouKnow);
-    const updateBook = await prisma.book.update({
-        where: { id: bookId },
-        data: { aiSuggestion: aiDoYouKnow }
-    });
+  const selectBook = await prisma.book.findUnique({
+    where: {
+      id: bookId
+    }
+  });
+  const aiDoYouKnow = await doYouKnow(selectBook.title);
+  console.log(aiDoYouKnow);
+  const updateBook = await prisma.book.update({
+    where: { id: bookId },
+    data: { aiSuggestion: aiDoYouKnow }
+  });
 
-    return updateBook;
+  return updateBook;
 }
 
 export async function aiSuggestion(bookId) {
-    const selectBook = await prisma.book.findUnique({
-        where: {
-            id: bookId
-        }
-    });
+  const selectBook = await prisma.book.findUnique({
+    where: {
+      id: bookId
+    }
+  });
 
-    const findRecommandBook = recommandBooks(selectBook.searchKey);
-    const booksArr = findRecommandBook.split("|");
-    return await prisma.book.findMany({
-        where: {
-            OR: booksArr.map((book) => ({
-                searchKey: { contain: book }
-            }))
-        }
-    })
+  const findRecommandBook = recommandBooks(selectBook.searchKey);
+  const booksArr = findRecommandBook.split("|");
+  return await prisma.book.findMany({
+    where: {
+      OR: booksArr.map((book) => ({
+        searchKey: { contain: book }
+      }))
+    }
+  })
 }
 
 export async function getBooks() {
@@ -60,7 +60,7 @@ export async function getBooks() {
       id: true,
       title: true,
       description: true,
-      aiSuggestion:true,
+      aiSuggestion: true,
       ratingCount: true,
       reviewCount: true,
       averageRating: true,
@@ -112,20 +112,28 @@ export async function getBooks() {
           createdAt: 'desc'
         }
       },
-
-      //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
-      bookTag: {
+      product: {
         select: {
-          tag: { // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
-            select: {
-              id: true,
-              name: true,
+          id: true,
+          sku: true,
+          price: true,
+          stockQuantity: true,
+          productType: true,
+        }
+      },
+        //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
+        bookTag: {
+          select: {
+            tag: { // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 }
 export async function getBookById(id) {
   return await prisma.book.findUnique({
@@ -134,7 +142,7 @@ export async function getBookById(id) {
       //--- เลือก field จากโมเดล Book ---
       id: true,
       title: true,
-      aiSuggestion:true,
+      aiSuggestion: true,
       description: true,
       ratingCount: true,
       reviewCount: true,
@@ -188,6 +196,15 @@ export async function getBookById(id) {
         }
       },
 
+      product: {
+        select: {
+          id: true,
+          sku: true,
+          price: true,
+          stockQuantity: true,
+          productType: true,
+        }
+      },
       //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
       bookTag: {
         select: {
