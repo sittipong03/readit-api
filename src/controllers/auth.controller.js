@@ -359,10 +359,5 @@ export async function deleteUser(req, res, next) {
 
   } catch (error) {
     next(error)
-
   }
-
-
-
-
 }

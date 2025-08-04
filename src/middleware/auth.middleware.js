@@ -22,7 +22,7 @@ export function authMiddleware(req, res, next) {
     // ✅ ถ้าไม่มี token เลย ถึงจะ throw error
     if (!token) {
       console.log("No valid bearer token found");
-      throw createError("Token missing", 401);
+      throw createError( 401,"Token missing");
     }
     jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
       if (error) {
