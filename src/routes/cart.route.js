@@ -5,8 +5,8 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 const cartRoute = express.Router();
 
 // cartRoute.get("/", cartController.testGet);
-cartRoute.get("/", authMiddleware, cartController.getCart);
-cartRoute.post("/", authMiddleware, cartController.addToCart);
+cartRoute.get("/", /*authMiddleware,*/ cartController.getCart);
+cartRoute.post("/", /*authMiddleware,*/ cartController.addToCart);
 cartRoute.patch(
   "/:itemId",
   authMiddleware,
