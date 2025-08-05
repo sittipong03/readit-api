@@ -36,17 +36,19 @@ export async function addToCart(req, res, next) {
 export async function updateCartItemQuantity(req, res, next) {
   try {
     const userId = req.user.id;
-    const { itemId } = req.params;
-    const { quantity } = req.body;
+    // const { itemId } = req.params;
+    const { quantity, itemId } = req.body;
 
     if (typeof quantity === "undefined") {
       throw createError(400, "กรุณาระบุ quantity");
     }
+
     const updatedItem = await cartService.updateCartItemQuantity(
       userId,
       itemId,
       quantity
     );
+
     res.json({ message: "อัพเดทจำนวนสินค้าสำเร็จ", item: updatedItem });
   } catch (error) {
     next(error);
