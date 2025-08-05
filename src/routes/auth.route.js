@@ -129,5 +129,6 @@ authRoute.post(
 );
 authRoute.get("/verification/:token", authController.verification);
 authRoute.delete("/:id", authController.deleteUser); // for quick test register and send node mailer
+authRoute.get("/refresh", authController.refreshToken); // for refresh token
 
 export default authRoute;
