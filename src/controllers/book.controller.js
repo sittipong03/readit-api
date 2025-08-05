@@ -75,17 +75,17 @@ export async function getBooks(req, res, next) {
 export async function getBookById(req, res, next) {
   try {
     const id = req.params.id;
-    const doYouKnow = await bookService.aiDoYouKnow(id)
+    // Function call AI
+    // const doYouKnow = await bookService.aiDoYouKnow(id)
     const data = await bookService.getBookById(id);
     if (!data) {
       createError(404, "Book is not found");
-
-        }
-        // ต้องปั้นใหม่ ให้สวย ส่ง front end รอดูว่า front ต้องการอะไรไปโชว์บ้าง ควรจะเหมือนกับ getBooks
-        res.json(data)
-    } catch (error) {
-        next(error)
     }
+    // ต้องปั้นใหม่ ให้สวย ส่ง front end รอดูว่า front ต้องการอะไรไปโชว์บ้าง ควรจะเหมือนกับ getBooks
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
 }
 export async function searchKeywordBooks(req, res, next) {
     try {
