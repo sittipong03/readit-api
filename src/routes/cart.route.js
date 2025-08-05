@@ -6,9 +6,14 @@ const cartRoute = express.Router();
 
 // cartRoute.get("/", cartController.testGet);
 cartRoute.get("/", authMiddleware, cartController.getCart);
-cartRoute.post("/", authMiddleware, cartController.addToCart);
+cartRoute.post("/", /*authMiddleware,*/ cartController.addToCart);
+// cartRoute.patch(
+//   "/:itemId",
+//   authMiddleware,
+//   cartController.updateCartItemQuantity
+// );
 cartRoute.patch(
-  "/:itemId",
+  "/",
   authMiddleware,
   cartController.updateCartItemQuantity
 );

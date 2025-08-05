@@ -8,10 +8,16 @@ import * as reviewService from "../services/review.service.js";
 dotenv.config();
 
 export async function createReview(req, res) {
-  const { bookId } = req.params;
-  console.log("bookId:", bookId);
-  const { title, content, reviewPoint } = req.body;
-  const userId = req.user.id;
+  const {
+    bookId
+  } = req.params;
+  const {
+    title,
+    content,
+    reviewPoint,
+    userId
+  } = req.body;
+  // const userId = req.user.id;
 
   try {
     const review = await reviewService.createReviewService(
@@ -26,7 +32,8 @@ export async function createReview(req, res) {
       review,
     });
   } catch (error) {
-    if (error.message === "Review point must be between 1 and 5.") {
+    console.log(error);
+    if (error.message === 'Review point must be between 1 and 5.') {
       return res.status(400).json({
         message: error.message,
       });
