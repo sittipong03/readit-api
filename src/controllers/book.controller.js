@@ -1,5 +1,6 @@
 import createError from "../utils/create-error.util.js";
 import * as bookService from "../services/book.service.js";
+import prisma from "../config/prisma.config.js";
 import cloudinary from "../config/cloudinary.config.js";
 import redis from "redis";
 
@@ -10,8 +11,9 @@ import redis from "redis";
 // Search book by AI
 export async function searchBookByAI(req, res, next) {
   try {
-    const userInfo = req.body;
-    const data = await bookService.searchBookByAI(userInfo);
+    const books = req.body;
+    // console.log("books", books);
+    const data = await bookService.searchBookByAI(books);
     res.status(200).json({ books: data });
   } catch (error) {
     next(error);
@@ -27,6 +29,16 @@ export async function aiDoYouKnow(req, res, next) {
     next(error);
   }
 }
+
+// export async function findbookbyname(req, res, next) {
+//     try {
+//         const { title } = req.body; // Destructure the title from the body
+//         const data = await bookService.getBookByName(title);
+//         res.status(200).json({ book: data });
+//     } catch (error) {
+//         next(error);
+//     }
+// }
 
 // export async function aiDoYouKnow(bookId) {
 //     const selectBook = await prisma.book.findUnique({
@@ -49,17 +61,6 @@ export async function aiDoYouKnow(req, res, next) {
 //         }
 //     });
 
-//     const findRecommandBook = recommandBooks(selectBook.searchKey);
-//     const booksArr = findRecommandBook.split("|");
-//     return await prisma.book.findMany({
-//         where: {
-//             OR: booksArr.map((book) => ({
-//                 searchKey: { contain: book }
-//             }))
-//         }
-//     })
-// }
-
 export async function getBooks(req, res, next) {
   try {
     const data = await bookService.getBooks();
@@ -72,7 +73,6 @@ export async function getBooks(req, res, next) {
 export async function getBookById(req, res, next) {
   try {
     const id = req.params.id;
-    // Function call AI
     // const doYouKnow = await bookService.aiDoYouKnow(id)
     const data = await bookService.getBookById(id);
     if (!data) {
@@ -84,6 +84,7 @@ export async function getBookById(req, res, next) {
     next(error);
   }
 }
+
 export async function searchKeywordBooks(req, res, next) {
   try {
     const keyword = req.query.keyword;
@@ -645,3 +646,62 @@ export async function deleteBookFromShelf(req, res, next) {
     next(error);
   }
 }
+
+export const getAiSuggestionForBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Controller received ID for AI suggestion:", id);
+
+    if (!id) {
+      return res.status(400).json({ message: "Book ID is missing" });
+    }
+
+    // --- ดึงข้อมูลหนังสือและตรวจสอบแคช (ส่วนนี้ถูกต้องแล้ว) ---
+    const book = await prisma.book.findUnique({
+      where: { id },
+      select: { title: true, aiSuggestion: true },
+    });
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    if (book.aiSuggestion) {
+      return res.status(200).json({ suggestion: book.aiSuggestion });
+    }
+
+    // --- เรียกใช้ AI Service ---
+    const resultFromService = await bookService.aiDoYouKnow(id);
+
+    // --- ตรวจสอบและจัดการผลลัพธ์ที่ได้จาก Service ---
+    // ตรวจสอบว่าผลลัพธ์ที่ได้เป็น string หรือไม่
+    if (typeof resultFromService === "string") {
+      // ✅ กรณี AI ทำงานสำเร็จ (ได้ string กลับมา)
+      const aiText = resultFromService;
+      console.log("AI suggestion from Google:", aiText);
+
+      // บันทึก string ลง DB
+      prisma.book
+        .update({
+          where: { id },
+          data: { aiSuggestion: aiText }, // <--- แก้ไข: บันทึกเฉพาะข้อความ
+        })
+        .catch((err) => console.error("Failed to cache AI suggestion:", err));
+
+      // ส่ง string กลับไปให้ Frontend
+      res.status(200).json({ suggestion: aiText });
+    } else {
+      // ❌ กรณี AI ทำงานล้มเหลว (ไม่ได้ string กลับมา)
+      console.error(
+        "AI Service did not return a string. It might have failed."
+      );
+      // ส่งข้อความ Error กลับไปให้ Frontend เพื่อให้แสดงผลอย่างเหมาะสม
+      res
+        .status(503)
+        .json({ message: "AI service is currently unavailable or failed." });
+    }
+  } catch (error) {
+    console.error("Critical error in getAiSuggestionForBook:", error);
+    res.status(500).json({ message: "Failed to generate AI suggestion." });
+  }
+};

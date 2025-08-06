@@ -24,7 +24,8 @@ bookRoute.delete("/authors/:id", bookController.deleteAuthor); // need authen ch
 // tags section
 
 // Search book by AI
-bookRoute.post("/search", bookController.searchBookByAI);
+// bookRoute.post("/search", bookController.searchBookByAI)
+bookRoute.post("/searchAI", bookController.searchBookByAI); //Search book by AI
 
 // Id
 bookRoute.get("/:id", bookController.getBookById);
@@ -43,4 +44,6 @@ bookRoute.get("/:id", bookController.getBookById);
 bookRoute.patch("/:id", bookController.updateBook); // need authen check admin middleware
 bookRoute.delete("/:id", bookController.deleteBook); // need authen check admin middleware
 
+// Route สำหรับ AI โดยเฉพาะ (ช้า)
+bookRoute.get("/:id/ai-suggestion", bookController.getAiSuggestionForBook);
 export default bookRoute;
