@@ -43,4 +43,6 @@ bookRoute.get("/:id", bookController.getBookById);
 bookRoute.patch("/:id", bookController.updateBook); // need authen check admin middleware
 bookRoute.delete("/:id", bookController.deleteBook); // need authen check admin middleware
 
-export default bookRoute;
+// Route สำหรับ AI โดยเฉพาะ (ช้า)
+bookRoute.get('/:id/ai-suggestion', bookController.getAiSuggestionForBook);
+export default bookRoute
