@@ -1,5 +1,5 @@
 import express from "express";
-import passport from "../config/passport.config.js";
+// import passport from "../config/passport.config.js";
 import * as authController from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import {
@@ -129,5 +129,6 @@ authRoute.post(
 );
 authRoute.get("/verification/:token", authController.verification);
 authRoute.delete("/:id", authController.deleteUser); // for quick test register and send node mailer
+authRoute.get("/refresh", authController.refreshToken); // for refresh token
 
 export default authRoute;

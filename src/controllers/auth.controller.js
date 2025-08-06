@@ -5,6 +5,8 @@ import crypto from "crypto";
 import createError from "../utils/create-error.util.js";
 import nodemailer from "nodemailer";
 import * as authService from "../services/auth.service.js";
+import { ref } from "process";
+import { access } from "fs";
 
 export async function testGetUser(req, res, next) {
   try {
@@ -18,11 +20,11 @@ export async function testGetUser(req, res, next) {
 export async function register(req, res, next) {
   try {
     const { email, password } = req.body;
-    let { name } = req.body
+    let { name } = req.body;
     if (!name) {
-      const addname = email.split("@")[0]
-      console.log(addname)
-      name = addname
+      const addname = email.split("@")[0];
+      console.log(addname);
+      name = addname;
     }
 
     const checkEmail = await authService.getUserByEmail(email);
@@ -36,7 +38,7 @@ export async function register(req, res, next) {
 
     const token = jwt.sign(
       { user: newUser.id },
-      process.env.JWT_SECRET_KEY || "kkbkjjkh",
+      process.env.JWT_SECRET_KEY || "jwt_secret_key",
       {
         expiresIn: "7d",
       }
@@ -50,7 +52,7 @@ export async function register(req, res, next) {
     });
 
     const verificationLink = `${process.env.URL_BACKEND}/api/auth/verification/${token}`;
-    console.log("verificationLink" , verificationLink)
+    console.log("verificationLink", verificationLink);
 
     await transporter.sendMail({
       to: email,
@@ -70,16 +72,16 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   try {
     const { email, password } = req.body;
-    console.log(req.body)
+    console.log(req.body);
     const user = await authService.getUserByEmail(email);
-    console.log("user",user)
+    console.log("user", user);
     if (!user) {
       return createError(400, "User not found");
     }
     if (user.emailVerified === false) {
       const token = jwt.sign(
         { user: user.id, email: user.email },
-        process.env.JWT_SECRET_KEY || "tirefg",
+        process.env.JWT_SECRET_KEY || "jwt_secret_key",
         {
           expiresIn: "7d",
         }
@@ -136,14 +138,42 @@ export async function login(req, res, next) {
           role: user.role,
         },
       },
-      process.env.JWT_SECRET_KEY || "ridifgd",
+      process.env.JWT_SECRET_KEY || "jwt_secret_key",
       {
         expiresIn: "1d",
       }
     );
 
+    const accessToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET_KEY || "access_secret_key",
+      { expiresIn: "20s" }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId: user.id },
+      process.env.REFRESH_SECRET_KEY || "refresh_secret_key",
+      { expiresIn: "1m" }
+    );
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 60 * 1000), // 1 minute
+      },
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // ไม่ให้หน้าบ้านเข้าถึง cookie นี้ได้ด้วยภาษา JavaScript
+      secure: true,
+      sameSite: "strict",
+      maxAge: 60 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       token: generateToken,
+      accessToken: accessToken,
       userId: user.id,
       role: user.role,
       user: user.name,
@@ -202,24 +232,63 @@ export async function getMe(req, res, next) {
   }
 }
 
-export function logout(req, res) {
+export async function logout(req, res, next) {
   try {
     const token = req.headers.authorization?.split(" ")[1];
+    const refreshToken = req.cookies.refreshToken;
 
     if (!token) {
-      return createError(401, "No token provided");
+      return createError(401, "Access Token missing");
     }
+
+    let userId;
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET_KEY || "access-secret"
+      );
+      userId = decoded.userId;
+    } catch (error) {
+      console.log("Access token invalid, but continuing logout process");
+    }
+
+    if (refreshToken) {
+      try {
+        await prisma.refreshToken.delete({
+          where: { token: refreshToken },
+        });
+        console.log("Refresh token deleted from database");
+      } catch (error) {
+        console.log("Refresh token not found in database or already deleted");
+      }
+    }
+
+    if (userId) {
+      try {
+        await prisma.refreshToken.deleteMany({
+          where: { userId: userId },
+        });
+        console.log(`All refresh tokens for user ${userId} deleted`);
+      } catch (error) {
+        console.log("Error deleting user refresh tokens:", error);
+      }
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
     res.clearCookie("authToken");
+
     res.json({
       success: true,
       message: "Logged out successfully",
     });
   } catch (error) {
     console.error("Logout error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Logout failed",
-    });
+    return createError(500, "Logout failed");
   }
 }
 
@@ -269,6 +338,7 @@ export async function forgotPassword(req, res, next) {
     next(error);
   }
 }
+
 export async function resetPassword(req, res, next) {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -344,20 +414,74 @@ export async function verification(req, res, next) {
 
 export async function deleteUser(req, res, next) {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
-    const idUserExist = await authService.getUserById(id)
-    console.log(idUserExist)
+    const idUserExist = await authService.getUserById(id);
+    console.log(idUserExist);
 
     if (!idUserExist) {
-      createError(404, "User not found")
+      createError(404, "User not found");
     }
 
-    await authService.deleteUser(id)
+    await authService.deleteUser(id);
 
-    res.json({message : `Delete user ${idUserExist.email} success `})
-
+    res.json({ message: `Delete user ${idUserExist.email} success ` });
   } catch (error) {
-    next(error)
+    next(error);
   }
 }
+
+export async function refreshToken(req, res, next) {
+  try {
+    const oldToken = req.cookies.refreshToken;
+
+    if (!oldToken) {
+      res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    const oldRefresh = await prisma.refreshToken.findUnique({
+      where: {
+        token: oldToken,
+      },
+    });
+
+    if (!oldRefresh) {
+      res.status(401).json({ message: "Refresh token not found" });
+      return;
+    }
+    if (new Date() > oldRefresh.expiresAt) {
+      res.status(401).json({ message: "Refresh token expired" });
+      return;
+    }
+
+    const newRefreshToken = jwt.sign(
+      { userId: oldRefresh.userId },
+      process.env.REFRESH_SECRET || "refresh-secret",
+      { expiresIn: "1m" }
+    );
+
+    const newAccessToken = jwt.sign(
+      { userId: oldRefresh.userId },
+      process.env.JWT_SECRET_KEY || "access-secret",
+      { expiresIn: "20s" }
+    );
+
+    await prisma.refreshToken.create({
+      data: {
+        token: newRefreshToken,
+        userId: oldRefresh.userId,
+        expiresAt: new Date(Date.now() + 60 * 1000), // 1 นาที
+      },
+    });
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 60 * 24 * 60 * 60 * 1000, // 60 วัน
+    });
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    next(error);
+  }
+}
+

@@ -4,9 +4,9 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const followerRoute = express.Router();
 
-followerRoute.post("/follow", authMiddleware, followerController.followUser);
+followerRoute.post("/:userId/follow", authMiddleware, followerController.followUser);
 followerRoute.delete(
-  "/unfollow",
+  "/:userId/unfollow",
   authMiddleware,
   followerController.unfollowUser
 );

@@ -1,109 +1,36 @@
 import prisma from "../config/prisma.config.js";
 
-export async function createReviewService(
-  userId,
-  bookId,
-  title,
-  content,
-  reviewPoint
-) {
+export async function createReviewService(userId, bookId, title, content, reviewPoint) {
+  // Optional: Check if user already submitted a review
+  const existing = await prisma.review.findFirst({
+    where: {
+      userId,
+      bookId,
+    },
+  });
+
+  if (existing) {
+    throw new Error("You have already submitted a review for this book.");
+  }
+
+  // Validate review point
   if (reviewPoint < 1 || reviewPoint > 5) {
     throw new Error("Review point must be between 1 and 5.");
   }
 
-  try {
-    const review = await prisma.$transaction(async (prisma) => {
-      const newReview = await prisma.review.create({
-        data: {
-          userId,
-          bookId,
-          title,
-          content,
-          reviewPoint,
-        },
-      });
-      const bookReviews = await prisma.review.findMany({
-        where: {
-          bookId,
-        },
-        select: {
-          reviewPoint: true,
-        },
-      });
+  // Create the review
+  const review = await prisma.review.create({
+    data: {
+      userId,
+      bookId,
+      title,
+      content,
+      reviewPoint,
+      isApproved: false, // default to false if needed
+    },
+  });
 
-      const totalReviewPoints = bookReviews.reduce(
-        (sum, r) => sum + r.reviewPoint,
-        0
-      );
-      const reviewCount = bookReviews.length;
-      const averageRating =
-        reviewCount > 0
-          ? parseFloat((totalReviewPoints / reviewCount).toFixed(1))
-          : 0;
-
-      const updateData = {
-        reviewCount: reviewCount,
-        averageRating: averageRating,
-      };
-      switch (reviewPoint) {
-        case 1:
-          updateData.oneStarCount = {
-            increment: 1,
-          };
-          break;
-        case 2:
-          updateData.twoStarCount = {
-            increment: 1,
-          };
-          break;
-        case 3:
-          updateData.threeStarCount = {
-            increment: 1,
-          };
-          break;
-        case 4:
-          updateData.fourStarCount = {
-            increment: 1,
-          };
-          break;
-        case 5:
-          updateData.fiveStarCount = {
-            increment: 1,
-          };
-          break;
-      }
-
-      await prisma.book.update({
-        where: {
-          id: bookId,
-        },
-        data: updateData,
-      });
-      await prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          reviewCount: {
-            increment: 1,
-          },
-        },
-      });
-
-      return newReview;
-    });
-
-    return review;
-  } catch (error) {
-    if (
-      error.code === "P2002" &&
-      error.meta?.target?.includes("userId") &&
-      error.meta?.target?.includes("bookId")
-    ) {
-      throw new Error("You have already submitted a review for this book.");
-    }
-    throw error;
-  }
+  return review;
 }
 
 export async function getReviewsByBookService(bookId) {

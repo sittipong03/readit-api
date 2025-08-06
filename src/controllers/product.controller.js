@@ -5,6 +5,7 @@ import createError from "../utils/create-error.util.js";
 export async function createProduct(req, res, next) {
     try {
         const { sku, price, productType, bookId } = req.body;
+        console.log(sku);
 
         if (!sku || !price || !productType) {
             createError(400, "sku, price, and productType are required.");
@@ -36,7 +37,11 @@ export async function getAllProducts(req, res, next) {
 export async function getProductById(req, res, next) {
     try {
         const { id } = req.params;
-        const product = await productService.getProductById(id);
+        let product = await productService.getProductById(id);
+        // if(product == []){
+        //     const mockBookId = ""
+        //     product = await productService.getProductById(id);
+        // }
 
         if (!product) {
             createError(404, "Product not found.");
