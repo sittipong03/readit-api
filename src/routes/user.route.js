@@ -5,6 +5,9 @@ import { isOwnerOrAdmin } from "../middleware/isOwnerOrAdmin.js";
 
 const userRoute = express.Router();
 
+userRoute.get('/booktag-preference-check', authMiddleware, userController.checkBookTagPreference);
+userRoute.post('/booktag-preference', authMiddleware, userController.saveBookTagPreferences );
+
 // userRoute.get("/", userController.testGet);
 userRoute.get("/:id", authMiddleware, userController.getMe);
 userRoute.put("/:id", authMiddleware, userController.updateUser);
@@ -23,5 +26,6 @@ userRoute.patch(
 userRoute.patch("/:id/password", authMiddleware, userController.updatePassword);
 userRoute.delete("/", authMiddleware, userController.deleteCurrentUser);
 userRoute.patch("/avatar", authMiddleware, userController.updateAvatar);
+
 
 export default userRoute;

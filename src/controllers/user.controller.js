@@ -136,3 +136,58 @@ export const deleteCurrentUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export async function checkBookTagPreference(req, res) {
+  try {
+    console.log("checkBookTagPreference called. req.user:", req.user);
+
+    const userId = req.user?.id;
+    if (!userId) {
+      console.error("User ID not found in req.user");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const firstPreference = await prisma.bookTagPreference.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+
+    const hasPreferences = !!firstPreference;
+    res.json({ hasPreferences });
+
+  } catch (error) {
+    console.error("Error checking book tag preference:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const saveBookTagPreferences = async (req, res) => {
+  const userId = req.user?.id;
+  const { tagIds } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (!Array.isArray(tagIds) || tagIds.length === 0) {
+    return res.status(400).json({ message: "No tags provided" });
+  }
+
+  try {
+    // Optional: remove previous preferences first (if needed)
+    await prisma.bookTagPreference.deleteMany({ where: { userId } });
+
+    // Create new preferences
+    const data = tagIds.map((tagId) => ({
+      userId,
+      tagId,
+    }));
+
+    await prisma.bookTagPreference.createMany({ data });
+
+    res.status(200).json({ message: "Preferences saved" });
+  } catch (err) {
+    console.error("Error saving tag preferences:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

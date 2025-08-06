@@ -22,14 +22,14 @@ bookRoute.delete('/authors/:id' , bookController.deleteAuthor) // need authen ch
 // Search book by AI
 bookRoute.post("/search", bookController.searchBookByAI)
 
-// Id
-bookRoute.get('/:id', bookController.getBookById)
-
 // tags
 bookRoute.get('/tags' , bookController.getTags)
 bookRoute.post('/tags' , bookController.createTag) // need authen check admin middleware
 bookRoute.patch('/tags/:id', bookController.updateTag) // need authen check admin middleware
 bookRoute.delete('/tags/:id' , bookController.deleteTag) // need authen check admin middleware
+
+// Id
+bookRoute.get('/:id', bookController.getBookById)
 
 /// book section
 bookRoute.get('/' , bookController.getBooks)
