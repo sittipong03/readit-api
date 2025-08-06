@@ -3,7 +3,9 @@ import * as cartService from "../services/cart.service.js";
 
 export async function getCart(req, res, next) {
   try {
-    const userId = req.user.id;
+    console.log("object==================================");
+    const userId = req.user.userId;
+    console.log("userId6666", req.user);
     const cart = await cartService.getCart(userId);
     res.json({ cart });
   } catch (error) {

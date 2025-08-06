@@ -130,20 +130,6 @@ export async function login(req, res, next) {
     console.log("Token payload:", payload);
     console.log("Key ที่ใช้สร้าง Token:", process.env.JWT_SECRET_KEY);
 
-    const generateToken = jwt.sign(
-      {
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-        },
-      },
-      process.env.JWT_SECRET_KEY || "jwt_secret_key",
-      {
-        expiresIn: "1d",
-      }
-    );
-
     const accessToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET_KEY || "access_secret_key",
@@ -172,7 +158,6 @@ export async function login(req, res, next) {
     });
 
     res.json({
-      token: generateToken,
       accessToken: accessToken,
       userId: user.id,
       role: user.role,

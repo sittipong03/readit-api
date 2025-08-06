@@ -7,7 +7,7 @@ const bookRoute = express.Router();
 
 // wishlist section
 bookRoute.get("/wishlist", authMiddleware, bookController.getUserShelf);
-bookRoute.post("/wishlist", bookController.createBookToShelf);
+bookRoute.post("/wishlist", authMiddleware, bookController.createBookToShelf);
 bookRoute.patch("/wishlist", authMiddleware, bookController.updateBookOnShelf);
 bookRoute.delete(
   "/wishlist/:bookId/:shelfType",
