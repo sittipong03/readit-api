@@ -23,8 +23,8 @@ export async function searchBookByAI(req, res, next) {
 
 export async function aiDoYouKnow(req, res, next) {
   try {
-    const bookName = req.body;
-    const data =  await bookService.aiDoYouKnow(bookName)
+    const bookId = req.params.id;
+    const data =  await bookService.aiDoYouKnow(bookId)
     res.status(200).json({book: data});
   } catch (error) {
     next(error)
@@ -77,6 +77,7 @@ export async function getBookById(req, res, next) {
     const id = req.params.id;
     // Function call AI
     const doYouKnow = await bookService.aiDoYouKnow(id)
+    console.log('doYouKnowwwww', doYouKnow)
     const data = await bookService.getBookById(id);
     if (!data) {
       createError(404, "Book is not found");

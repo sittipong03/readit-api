@@ -17,15 +17,19 @@ import orderRoute from "./routes/order.route.js";
 import affiliateRoute from "./routes/affiliate.route.js";
 import notificationRoute from "./routes/notification.route.js";
 import followerRoute from "./routes/follower.route.js";
-import productRoute from "./routes/product.route.js"
+import productRoute from "./routes/product.route.js";
+import { authMiddleware } from "./middleware/auth.middleware.js";
+import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(
   cors({
     origin: "http://localhost:5173",
+    credentials: true, // ให้ cookie ถูกส่งไปยัง frontend
   })
 );
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(
@@ -47,7 +51,7 @@ app.use("/api/cart", cartRoute);
 app.use("/api/order", orderRoute);
 app.use("/api/affiliate", affiliateRoute);
 app.use("/api/notifications", notificationRoute);
-app.use("/api/product" , productRoute)
+app.use("/api/product", productRoute);
 app.use("/api", followerRoute);
 
 //404
