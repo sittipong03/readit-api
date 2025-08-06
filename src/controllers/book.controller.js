@@ -11,8 +11,9 @@ import redis from "redis";
 // Search book by AI
 export async function searchBookByAI(req, res, next) {
   try {
-    const userInfo = req.body;
-    const data = await bookService.searchBookByAI(userInfo);
+    const books = req.body;
+    // console.log("books", books);
+    const data = await bookService.searchBookByAI(books);
     res.status(200).json({ books: data });
   } catch (error) {
     next(error);
@@ -29,6 +30,16 @@ export async function aiDoYouKnow(req, res, next) {
     next(error)
   }
 }
+
+// export async function findbookbyname(req, res, next) {
+//     try {
+//         const { title } = req.body; // Destructure the title from the body
+//         const data = await bookService.getBookByName(title);
+//         res.status(200).json({ book: data });
+//     } catch (error) {
+//         next(error);
+//     }
+// }
 
 // export async function aiDoYouKnow(bookId) {
 //     const selectBook = await prisma.book.findUnique({
@@ -51,17 +62,6 @@ export async function aiDoYouKnow(req, res, next) {
 //         }
 //     });
 
-//     const findRecommandBook = recommandBooks(selectBook.searchKey);
-//     const booksArr = findRecommandBook.split("|");
-//     return await prisma.book.findMany({
-//         where: {
-//             OR: booksArr.map((book) => ({
-//                 searchKey: { contain: book }
-//             }))
-//         }
-//     })
-// }
-
 
 export async function getBooks(req, res, next) {
     try {
@@ -76,7 +76,7 @@ export async function getBookById(req, res, next) {
   try {
     const id = req.params.id;
     // Function call AI
-    // const doYouKnow = await bookService.aiDoYouKnow(id)
+    const doYouKnow = await bookService.aiDoYouKnow(id)
     const data = await bookService.getBookById(id);
     if (!data) {
       createError(404, "Book is not found");

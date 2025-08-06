@@ -6,16 +6,98 @@ import { searchBooks, doYouKnow, recommandBooks } from "../middleware/ai.middlew
 // book service section 
 
 // Search book by AI
-export async function searchBookByAI(userInfo) {
-  // const userInfo = userInfo
-  const bookResult = searchBooks(userInfo);
+export async function searchBookByAI(books) {
+
+  const bookResult = await searchBooks(books);
+  console.log("bookResult", bookResult);
   const booksArr = bookResult.split(",");
+  // console.log("bookarr", booksArr);
   return await prisma.book.findMany({
     where: {
-      OR: booksArr.map((book) => ({
-        searchKey: { contain: book },
-      })),
+      OR: booksArr.flatMap((book) => [
+        {title: { contains: book }},
+        {searchKey: { contains: book }},
+      ]),
     },
+    select: {
+      //--- เลือก field จากโมเดล Book ---
+      id: true,
+      title: true,
+      description: true,
+      aiSuggestion: true,
+      ratingCount: true,
+      reviewCount: true,
+      averageRating: true,
+      oneStarCount: true,
+      twoStarCount: true,
+      threeStarCount: true,
+      fourStarCount: true,
+      fiveStarCount: true,
+
+
+      //--- ดึงข้อมูล Author ที่เกี่ยวข้อง ---
+      Author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+
+      //--- ดึงข้อมูล Edition ทั้งหมดของหนังสือเล่มนี้ ---
+      edition: {
+        select: {
+          id: true,
+          isbn: true,
+          coverImage: true,
+          isLatest: true,
+          pages: true,
+        },
+        orderBy: {
+          isLatest: 'desc' // เรียงให้ edition ล่าสุดขึ้นก่อน
+        }
+      },
+
+      //--- ดึงข้อมูล Review ทั้งหมดของหนังสือเล่มนี้ ---
+      review: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          reviewPoint: true,
+          user: { // ดึงข้อมูล user ที่เขียนรีวิว
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
+        // take: 5, // ตัวอย่าง: ดึงมาแค่ 5 รีวิวล่าสุด
+        orderBy: {
+          createdAt: 'desc'
+        }
+      },
+      product: {
+        select: {
+          id: true,
+          sku: true,
+          price: true,
+          stockQuantity: true,
+          productType: true,
+        }
+      },
+        //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
+        bookTag: {
+          select: {
+            tag: { // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+
   });
 }
 
@@ -47,8 +129,16 @@ export async function aiSuggestion(bookId) {
   return await prisma.book.findMany({
     where: {
       OR: booksArr.map((book) => ({
-        searchKey: { contain: book }
+        title: { contain: book },
+        searchKey : {contain: book}
       }))
+    }
+  })
+}
+export async function getAllNameBook() {
+  return await prisma.book.findMany({
+    select:{
+      title: true
     }
   })
 }
@@ -222,9 +312,9 @@ export async function getBookById(id) {
 
 
 
-export async function getBookByName(name) {
-  return await prisma.author.findUnique({ where: { name } })
-}
+// export async function getBookByName(title) {
+//   return await prisma.author.findFirst({ where: { title} })
+// }
 export async function getBooksByKeyword(keyword) {
   return await prisma.book.findMany({
     where: {

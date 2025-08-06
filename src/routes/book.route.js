@@ -5,6 +5,8 @@ import uploadPic from "../middleware/upload-pic.middleware.js"
 
 const bookRoute = express.Router()
 
+// bookRoute.get('/bookname' , bookController.findbookbyname)
+
 // wishlist section 
 bookRoute.get('/wishlist' , bookController.getUserShelf) // need authen check User middleware
 bookRoute.post('/wishilst' , bookController.createBookToShelf) // need authen check User middleware
@@ -20,7 +22,8 @@ bookRoute.delete('/authors/:id' , bookController.deleteAuthor) // need authen ch
 // tags section
 
 // Search book by AI
-bookRoute.post("/search", bookController.searchBookByAI)
+// bookRoute.post("/search", bookController.searchBookByAI)
+bookRoute.post('/searchAI' , bookController.searchBookByAI) //Search book by AI
 
 // Id
 bookRoute.get('/:id', bookController.getBookById)
