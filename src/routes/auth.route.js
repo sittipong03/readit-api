@@ -36,46 +36,47 @@ authRoute.get("/", (req, res) => {
 
 // ไปหน้า login ด้วย Google กดอนุญาต
 
-authRoute.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
+// authRoute.get(
+//   "/google",
+//   passport.authenticate("google", { scope: ["profile", "email"] })
+// );
 
 // จะถูก redirect กลับมาที่ /api/auth/google/callback
-authRoute.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    // Google ส่ง authorization code มา ตัว Passport.js จะ:
-    // 1. แลก code เป็น access token กับตัว Google
-    // 2. ใช้ access token ดึงข้อมูล user จาก Google API
-    // 3. เรียก GoogleStrategy callback function (อยู่ใน passport.config.js)
-    // 4. ใส่ข้อมูล user ใน req.user
-    failureRedirect: "/api/auth?error=auth_failed", // ถ้า auth ล้มเหลวมาเส้นนี้
-    session: false, // เราใช้ jwt ถ้าใช้ session จะเขียนอีกแบบนึง
-  }),
-  (req, res) => {
-    // ดูข้อมูล user ที่ได้จาก Google
-    console.log("Google User Data:", req.user);
-    try {
-      if (!req.user) {
-        // ถ้าไม่่มีข้อมูลจาก Google แสดงว่า passport authentication ล้มเหลว
-        return res.redirect("/api/auth?error=no_user_data");
-      }
+// authRoute.get(
+//   "/google/callback",
+//   passport.authenticate("google", {
+//     // Google ส่ง authorization code มา ตัว Passport.js จะ:
+//     // 1. แลก code เป็น access token กับตัว Google
+//     // 2. ใช้ access token ดึงข้อมูล user จาก Google API
+//     // 3. เรียก GoogleStrategy callback function (อยู่ใน passport.config.js)
+//     // 4. ใส่ข้อมูล user ใน req.user
+//     failureRedirect: "/api/auth?error=auth_failed", // ถ้า auth ล้มเหลวมาเส้นนี้
+//     session: false, // เราใช้ jwt ถ้าใช้ session จะเขียนอีกแบบนึง
+//   }),
+//   (req, res) => {
+//     // ดูข้อมูล user ที่ได้จาก Google
+//     console.log("Google User Data:", req.user);
+//     try {
+//       if (!req.user) {
+//         // ถ้าไม่่มีข้อมูลจาก Google แสดงว่า passport authentication ล้มเหลว
+//         return res.redirect("/api/auth?error=no_user_data");
+//       }
 
-      // สร้าง JWT token เพื่อส่งกลับไปยัง frontend ใช้ authenticate
-      const token = jwt.sign(
-        {
-          // payload ที่จะเก็บใน token
-          user: {
-            id: req.user.id,
-            email: req.user.email,
-            name: req.user.name,
-            role: req.user.role || "USER",
-          },
-        },
-        process.env.JWT_SECRET_KEY,
-        { expiresIn: "24h", algorithm: "HS256" }
-      );
+//       // สร้าง JWT token เพื่อส่งกลับไปยัง frontend ใช้ authenticate
+//       const token = jwt.sign(
+//         {
+//           // payload ที่จะเก็บใน token
+//           user: {
+//             id: req.user.id,
+//             email: req.user.email,
+//             name: req.user.name,
+//             role: req.user.role || "USER",
+//           },
+//         },
+//         process.env.JWT_SECRET_KEY,
+//         { expiresIn: "24h", algorithm: "HS256" }
+//       );
+
 
       // ส่ง user กลับไป frontend พร้อม token ใน URL parameter
       const frontendURL = process.env.URL_FRONTEND || "http://localhost:5173";
@@ -93,13 +94,13 @@ authRoute.get(
 );
 
 ////////////////////////////////////////////////////////////
-passport.authenticate(
-  "google",
-  { failureRedirect: "/api/auth" },
-  (req, res) => {
-    res.redirect("http://localhost:6500/api/auth/test");
-  }
-);
+// passport.authenticate(
+//   "google",
+//   { failureRedirect: "/api/auth" },
+//   (req, res) => {
+//     res.redirect("http://localhost:6500/api/auth/test");
+//   }
+// );
 authRoute.get("/test", (req, res) => {
   res.send(req.user.displayName + " is logged in");
 });
