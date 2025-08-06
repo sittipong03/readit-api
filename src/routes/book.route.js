@@ -1,17 +1,19 @@
 import express from "express";
 import * as bookController from "../controllers/book.controller.js";
 import uploadPic from "../middleware/upload-pic.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const bookRoute = express.Router();
 
-// bookRoute.get('/bookname' , bookController.findbookbyname)
-
-// wishlist section 
-bookRoute.get('/wishlist' , bookController.getUserShelf) // need authen check User middleware
-bookRoute.post('/wishilst' , bookController.createBookToShelf) // need authen check User middleware
-bookRoute.patch('/wishlist', bookController.updateBookOnShelf) // need authen check User middleware
-bookRoute.delete('/wishlist/:bookId/:shelfType' , bookController.deleteBookFromShelf) // need authen check User middleware
-
+// wishlist section
+bookRoute.get("/wishlist", authMiddleware, bookController.getUserShelf);
+bookRoute.post("/wishlist", authMiddleware, bookController.createBookToShelf);
+bookRoute.patch("/wishlist", authMiddleware, bookController.updateBookOnShelf);
+bookRoute.delete(
+  "/wishlist/:bookId/:shelfType",
+  authMiddleware,
+  bookController.deleteBookFromShelf
+);
 
 // author section
 bookRoute.get("/authors", bookController.getAuthors);
@@ -23,8 +25,7 @@ bookRoute.delete("/authors/:id", bookController.deleteAuthor); // need authen ch
 
 // Search book by AI
 // bookRoute.post("/search", bookController.searchBookByAI)
-bookRoute.post('/searchAI' , bookController.searchBookByAI) //Search book by AI
-
+bookRoute.post("/searchAI", bookController.searchBookByAI); //Search book by AI
 
 // Id
 bookRoute.get("/:id", bookController.getBookById);
@@ -44,5 +45,5 @@ bookRoute.patch("/:id", bookController.updateBook); // need authen check admin m
 bookRoute.delete("/:id", bookController.deleteBook); // need authen check admin middleware
 
 // Route สำหรับ AI โดยเฉพาะ (ช้า)
-bookRoute.get('/:id/ai-suggestion', bookController.getAiSuggestionForBook);
-export default bookRoute
+bookRoute.get("/:id/ai-suggestion", bookController.getAiSuggestionForBook);
+export default bookRoute;

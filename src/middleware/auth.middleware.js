@@ -23,7 +23,6 @@ export function authMiddleware(req, res, next) {
     if (!token) {
       console.log("No valid bearer token found");
       throw createError(401, "Token missing");
-
     }
     jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
       if (error) {
@@ -32,7 +31,7 @@ export function authMiddleware(req, res, next) {
       }
 
       console.log("Decoded token", decoded);
-      console.log("User object", decoded.user);
+      console.log("User object--", decoded.user);
 
       req.user = decoded.user ?? decoded;
 
