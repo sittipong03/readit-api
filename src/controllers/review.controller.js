@@ -8,16 +8,15 @@ import * as reviewService from "../services/review.service.js";
 dotenv.config();
 
 export async function createReview(req, res) {
-  const {
-    bookId
-  } = req.params;
-  const {
-    title,
-    content,
-    reviewPoint,
-    userId
-  } = req.body;
-  // const userId = req.user.id;
+  const { bookId } = req.params;
+  const { title, content, reviewPoint } = req.body;
+
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const userId = req.user.id;
+
 
   try {
     const review = await reviewService.createReviewService(
@@ -27,28 +26,26 @@ export async function createReview(req, res) {
       content,
       reviewPoint
     );
+
     return res.status(201).json({
       message: "Review added successfully",
-      review,
+      review: {
+        id: review.id,
+        bookId: review.bookId,
+        title: review.title,
+        content: review.content,
+        reviewPoint: review.reviewPoint,
+        createdAt: review.createdAt,
+      },
     });
   } catch (error) {
-    console.log(error);
-    if (error.message === 'Review point must be between 1 and 5.') {
-      return res.status(400).json({
-        message: error.message,
-      });
+    if (error.message === "You have already submitted a review for this book.") {
+      return res.status(409).json({ message: error.message });
+
     }
-    if (
-      error.message === "You have already submitted a review for this book."
-    ) {
-      return res.status(409).json({
-        message: error.message,
-      });
-    }
+
     console.error("Error creating review:", error);
-    return res.status(500).json({
-      message: "Failed to add review.",
-    });
+    return res.status(500).json({ message: "Failed to add review." });
   }
 }
 
@@ -71,30 +68,23 @@ export async function editReview(req, res) {
   const updateData = req.body;
 
   try {
-    const updatedReview = await reviewService.editReviewService(
-      id,
-      userId,
-      updateData
-    );
+    const updatedReview = await reviewService.editReviewService(id, userId, updateData);
+
     return res.status(200).json({
       message: "Review updated successfully",
       review: updatedReview,
     });
   } catch (error) {
     if (error.message === "Review not found.") {
-      return res.status(404).json({
-        message: error.message,
-      });
+      return res.status(404).json({ message: error.message });
     }
     if (error.message === "Unauthorized: You can only edit your own reviews.") {
-      return res.status(403).json({
-        message: error.message,
-      });
+      return res.status(403).json({ message: error.message });
     }
-    console.error("Error editing review:", error);
-    return res.status(500).json({
-      message: "Failed to update review.",
-    });
+
+    console.error(`Error editing review ${id} by user ${userId}:`, error);
+
+    return res.status(500).json({ message: "Failed to update review." });
   }
 }
 
