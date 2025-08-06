@@ -61,7 +61,6 @@ export async function aiDoYouKnow(req, res, next) {
 //         }
 //     });
 
-
 export async function getBooks(req, res, next) {
   try {
     const data = await bookService.getBooks();
@@ -84,13 +83,8 @@ export async function getBookById(req, res, next) {
   } catch (error) {
     next(error);
   }
-    }
-    // ต้องปั้นใหม่ ให้สวย ส่ง front end รอดูว่า front ต้องการอะไรไปโชว์บ้าง ควรจะเหมือนกับ getBooks
-    res.json(data);
-  } catch (error) {
-    next(error);
-  }
 }
+
 export async function searchKeywordBooks(req, res, next) {
   try {
     const keyword = req.query.keyword;
