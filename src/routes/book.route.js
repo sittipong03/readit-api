@@ -4,14 +4,16 @@ import uploadPic from "../middleware/upload-pic.middleware.js";
 
 const bookRoute = express.Router();
 
-// wishlist section
-bookRoute.get("/wishlist", bookController.getUserShelf); // need authen check User middleware
-bookRoute.post("/wishlist", bookController.createBookToShelf); // need authen check User middleware
-bookRoute.patch("/wishlist", bookController.updateBookOnShelf); // need authen check User middleware
-bookRoute.delete(
-  "/wishlist/:bookId/:shelfType",
-  bookController.deleteBookFromShelf
-); // need authen check User middleware
+const bookRoute = express.Router()
+
+// bookRoute.get('/bookname' , bookController.findbookbyname)
+
+// wishlist section 
+bookRoute.get('/wishlist' , bookController.getUserShelf) // need authen check User middleware
+bookRoute.post('/wishilst' , bookController.createBookToShelf) // need authen check User middleware
+bookRoute.patch('/wishlist', bookController.updateBookOnShelf) // need authen check User middleware
+bookRoute.delete('/wishlist/:bookId/:shelfType' , bookController.deleteBookFromShelf) // need authen check User middleware
+
 
 // author section
 bookRoute.get("/authors", bookController.getAuthors);
@@ -22,7 +24,9 @@ bookRoute.delete("/authors/:id", bookController.deleteAuthor); // need authen ch
 // tags section
 
 // Search book by AI
-bookRoute.post("/search", bookController.searchBookByAI);
+// bookRoute.post("/search", bookController.searchBookByAI)
+bookRoute.post('/searchAI' , bookController.searchBookByAI) //Search book by AI
+
 
 // Id
 bookRoute.get("/:id", bookController.getBookById);
