@@ -130,30 +130,16 @@ export async function login(req, res, next) {
     console.log("Token payload:", payload);
     console.log("Key ที่ใช้สร้าง Token:", process.env.JWT_SECRET_KEY);
 
-    const generateToken = jwt.sign(
-      {
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-        },
-      },
-      process.env.JWT_SECRET_KEY || "jwt_secret_key",
-      {
-        expiresIn: "1d",
-      }
-    );
-
     const accessToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET_KEY || "access_secret_key",
-      { expiresIn: "20s" }
+      { expiresIn: "1d" }
     );
 
     const refreshToken = jwt.sign(
       { userId: user.id },
       process.env.REFRESH_SECRET_KEY || "refresh_secret_key",
-      { expiresIn: "1m" }
+      { expiresIn: "2d" }
     );
 
     await prisma.refreshToken.create({
@@ -172,7 +158,6 @@ export async function login(req, res, next) {
     });
 
     res.json({
-      token: generateToken,
       accessToken: accessToken,
       userId: user.id,
       role: user.role,
@@ -484,4 +469,3 @@ export async function refreshToken(req, res, next) {
     next(error);
   }
 }
-
