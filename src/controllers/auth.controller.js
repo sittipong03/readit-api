@@ -172,17 +172,17 @@ export async function getMe(req, res, next) {
   try {
     console.log("req.user in getMe:", req.user); // Debug
     console.log("Type of req.user:", typeof req.user); // Debug
-    console.log("req.user.id:", req.user?.id); // Debug
+    console.log("req.user.userId:", req.user?.id); // Debug
 
     if (!req.user) {
       return createError(401, "User not authenticated");
     }
 
-    if (!req.user.id) {
+    if (!req.user.userId) {
       return createError(401, "User ID not found in request");
     }
 
-    const userId = req.user.id;
+    const userId = req.user.userId;
     console.log("Using userId:", userId);
 
     const user = await prisma.user.findUnique({
@@ -327,7 +327,7 @@ export async function forgotPassword(req, res, next) {
 export async function resetPassword(req, res, next) {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -372,7 +372,7 @@ export async function resetPassword(req, res, next) {
 export async function verification(req, res, next) {
   try {
     const { token } = req.params;
-    const headers = jwt.verify(token, process.env.JWT_SECRET);
+    const headers = jwt.verify(token, process.env.JWT_SECRET_KEY);
     if (!headers) {
       return createError(404, "Token Missing");
     }
