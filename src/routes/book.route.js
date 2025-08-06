@@ -1,17 +1,19 @@
 import express from "express";
 import * as bookController from "../controllers/book.controller.js";
 import uploadPic from "../middleware/upload-pic.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const bookRoute = express.Router();
 
 // wishlist section
-bookRoute.get("/wishlist", bookController.getUserShelf); // need authen check User middleware
-bookRoute.post("/wishlist", bookController.createBookToShelf); // need authen check User middleware
-bookRoute.patch("/wishlist", bookController.updateBookOnShelf); // need authen check User middleware
+bookRoute.get("/wishlist", authMiddleware, bookController.getUserShelf);
+bookRoute.post("/wishlist", bookController.createBookToShelf);
+bookRoute.patch("/wishlist", authMiddleware, bookController.updateBookOnShelf);
 bookRoute.delete(
   "/wishlist/:bookId/:shelfType",
+  authMiddleware,
   bookController.deleteBookFromShelf
-); // need authen check User middleware
+);
 
 // author section
 bookRoute.get("/authors", bookController.getAuthors);

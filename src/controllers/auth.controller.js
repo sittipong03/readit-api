@@ -147,13 +147,13 @@ export async function login(req, res, next) {
     const accessToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET_KEY || "access_secret_key",
-      { expiresIn: "20s" }
+      { expiresIn: "1d" }
     );
 
     const refreshToken = jwt.sign(
       { userId: user.id },
       process.env.REFRESH_SECRET_KEY || "refresh_secret_key",
-      { expiresIn: "1m" }
+      { expiresIn: "2d" }
     );
 
     await prisma.refreshToken.create({
@@ -484,4 +484,3 @@ export async function refreshToken(req, res, next) {
     next(error);
   }
 }
-
