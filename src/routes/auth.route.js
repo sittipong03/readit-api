@@ -1,5 +1,5 @@
 import express from "express";
-import passport from "../config/passport.config.js";
+// import passport from "../config/passport.config.js";
 import * as authController from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import {

@@ -1,6 +1,6 @@
 import express from "express";
 import session from "express-session";
-import passport from "./config/passport.config.js";
+// import passport from "./config/passport.config.js";
 import cors from "cors";
 import morgan from "morgan";
 import notFoundMiddleware from "./middleware/not-found.middleware.js";
@@ -39,8 +39,8 @@ app.use(
     saveUninitialized: false,
   })
 );
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
