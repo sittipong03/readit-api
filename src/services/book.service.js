@@ -1,13 +1,15 @@
 import { tr } from "@faker-js/faker";
 import prisma from "../config/prisma.config.js";
-import { searchBooks, doYouKnow, recommandBooks } from "../middleware/ai.middleware.js";
+import {
+  searchBooks,
+  doYouKnow,
+  recommandBooks,
+} from "../middleware/ai.middleware.js";
 
-
-// book service section 
+// book service section
 
 // Search book by AI
 export async function searchBookByAI(books) {
-
   const bookResult = await searchBooks(books);
   console.log("bookResult", bookResult);
   const booksArr = bookResult.split(",");
@@ -15,8 +17,8 @@ export async function searchBookByAI(books) {
   return await prisma.book.findMany({
     where: {
       OR: booksArr.flatMap((book) => [
-        {title: { contains: book }},
-        {searchKey: { contains: book }},
+        { title: { contains: book } },
+        { searchKey: { contains: book } },
       ]),
     },
     select: {
@@ -33,7 +35,6 @@ export async function searchBookByAI(books) {
       threeStarCount: true,
       fourStarCount: true,
       fiveStarCount: true,
-
 
       //--- ดึงข้อมูล Author ที่เกี่ยวข้อง ---
       Author: {
@@ -53,8 +54,8 @@ export async function searchBookByAI(books) {
           pages: true,
         },
         orderBy: {
-          isLatest: 'desc' // เรียงให้ edition ล่าสุดขึ้นก่อน
-        }
+          isLatest: "desc", // เรียงให้ edition ล่าสุดขึ้นก่อน
+        },
       },
 
       //--- ดึงข้อมูล Review ทั้งหมดของหนังสือเล่มนี้ ---
@@ -64,17 +65,18 @@ export async function searchBookByAI(books) {
           title: true,
           content: true,
           reviewPoint: true,
-          user: { // ดึงข้อมูล user ที่เขียนรีวิว
+          user: {
+            // ดึงข้อมูล user ที่เขียนรีวิว
             select: {
               id: true,
-              name: true
-            }
-          }
+              name: true,
+            },
+          },
         },
         // take: 5, // ตัวอย่าง: ดึงมาแค่ 5 รีวิวล่าสุด
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: "desc",
+        },
       },
       product: {
         select: {
@@ -83,35 +85,35 @@ export async function searchBookByAI(books) {
           price: true,
           stockQuantity: true,
           productType: true,
-        }
+        },
       },
-        //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
-        bookTag: {
-          select: {
-            tag: { // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
-              select: {
-                id: true,
-                name: true,
-              },
+      //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
+      bookTag: {
+        select: {
+          tag: {
+            // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
       },
-
+    },
   });
 }
 
 export async function aiDoYouKnow(bookId) {
   const selectBook = await prisma.book.findUnique({
     where: {
-      id: bookId
-    }
+      id: bookId,
+    },
   });
   const aiDoYouKnow = await doYouKnow(selectBook.title);
   console.log(aiDoYouKnow);
   const updateBook = await prisma.book.update({
     where: { id: bookId },
-    data: { aiSuggestion: aiDoYouKnow }
+    data: { aiSuggestion: aiDoYouKnow },
   });
 
   return updateBook.aiSuggestion;
@@ -120,8 +122,8 @@ export async function aiDoYouKnow(bookId) {
 export async function aiSuggestion(bookId) {
   const selectBook = await prisma.book.findUnique({
     where: {
-      id: bookId
-    }
+      id: bookId,
+    },
   });
 
   const findRecommandBook = recommandBooks(selectBook.searchKey);
@@ -130,17 +132,17 @@ export async function aiSuggestion(bookId) {
     where: {
       OR: booksArr.map((book) => ({
         title: { contain: book },
-        searchKey : {contain: book}
-      }))
-    }
-  })
+        searchKey: { contain: book },
+      })),
+    },
+  });
 }
 export async function getAllNameBook() {
   return await prisma.book.findMany({
-    select:{
-      title: true
-    }
-  })
+    select: {
+      title: true,
+    },
+  });
 }
 
 export async function getBooks() {
@@ -160,7 +162,6 @@ export async function getBooks() {
       fourStarCount: true,
       fiveStarCount: true,
 
-
       //--- ดึงข้อมูล Author ที่เกี่ยวข้อง ---
       Author: {
         select: {
@@ -179,8 +180,8 @@ export async function getBooks() {
           pages: true,
         },
         orderBy: {
-          isLatest: 'desc' // เรียงให้ edition ล่าสุดขึ้นก่อน
-        }
+          isLatest: "desc", // เรียงให้ edition ล่าสุดขึ้นก่อน
+        },
       },
 
       //--- ดึงข้อมูล Review ทั้งหมดของหนังสือเล่มนี้ ---
@@ -190,17 +191,18 @@ export async function getBooks() {
           title: true,
           content: true,
           reviewPoint: true,
-          user: { // ดึงข้อมูล user ที่เขียนรีวิว
+          user: {
+            // ดึงข้อมูล user ที่เขียนรีวิว
             select: {
               id: true,
-              name: true
-            }
-          }
+              name: true,
+            },
+          },
         },
         // take: 5, // ตัวอย่าง: ดึงมาแค่ 5 รีวิวล่าสุด
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: "desc",
+        },
       },
       product: {
         select: {
@@ -209,21 +211,22 @@ export async function getBooks() {
           price: true,
           stockQuantity: true,
           productType: true,
-        }
+        },
       },
-        //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
-        bookTag: {
-          select: {
-            tag: { // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
-              select: {
-                id: true,
-                name: true,
-              },
+      //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
+      bookTag: {
+        select: {
+          tag: {
+            // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
       },
-    });
+    },
+  });
 }
 export async function getBookById(id) {
   return await prisma.book.findUnique({
@@ -322,8 +325,6 @@ export async function getBookById(id) {
   });
 }
 
-
-
 // export async function getBookByName(title) {
 //   return await prisma.author.findFirst({ where: { title} })
 // }
@@ -342,7 +343,8 @@ export async function getBooksByKeyword(keyword) {
           },
         },
         {
-          Author: { // เพิ่มการค้นหาจากชื่อผู้แต่ง
+          Author: {
+            // เพิ่มการค้นหาจากชื่อผู้แต่ง
             name: {
               contains: keyword,
             },
@@ -350,7 +352,8 @@ export async function getBooksByKeyword(keyword) {
         },
       ],
     },
-    include: { // ดึงข้อมูลที่เกี่ยวข้องมาด้วยเพื่อแสดงผล
+    include: {
+      // ดึงข้อมูลที่เกี่ยวข้องมาด้วยเพื่อแสดงผล
       Author: {
         select: {
           id: true,
@@ -364,7 +367,7 @@ export async function getBooksByKeyword(keyword) {
           coverImage: true,
         },
         where: { isLatest: true }, // เอามาเฉพาะ edition ล่าสุด
-        take: 1
+        take: 1,
       },
       bookTag: {
         select: {
@@ -379,24 +382,24 @@ export async function getBooksByKeyword(keyword) {
   });
 }
 export async function postBook(data) {
-  return await prisma.book.create({ data })
+  return await prisma.book.create({ data });
 }
 export async function patchBook(id, data) {
   return await prisma.book.update({
     where: { id },
-    data
-  })
+    data,
+  });
 }
 export async function deleteBook(id) {
-  return await prisma.book.delete({ where: { id } })
+  return await prisma.book.delete({ where: { id } });
 }
 
-// edition service section 
+// edition service section
 export async function getEditions() {
-  return await prisma.edition.findMany()
+  return await prisma.edition.findMany();
 }
 export async function getEditionById(id) {
-  return await prisma.edition.findUnique({ where: { id } })
+  return await prisma.edition.findUnique({ where: { id } });
 }
 export async function getEditionByBookId(id) {
   return await prisma.book.findUnique({
@@ -411,80 +414,80 @@ export async function getEditionByBookId(id) {
           pages: true,
         },
         orderBy: {
-          isLatest: 'desc' // เรียงให้ edition ล่าสุดขึ้นก่อน
-        }
-      }
-    }
-  })
+          isLatest: "desc", // เรียงให้ edition ล่าสุดขึ้นก่อน
+        },
+      },
+    },
+  });
 }
 export async function getEditionByIsbn(isbn) {
-  return await prisma.edition.findUnique({ where: { isbn } })
+  return await prisma.edition.findUnique({ where: { isbn } });
 }
 export async function postEdition(data) {
-  return await prisma.edition.create({ data })
+  return await prisma.edition.create({ data });
 }
 
-// author service section 
+// author service section
 export async function getAuthors() {
-  return await prisma.author.findMany()
+  return await prisma.author.findMany();
 }
 export async function getAuthorById(id) {
   return await prisma.author.findUnique({
-    where: { id }
-  })
+    where: { id },
+  });
 }
 export async function getAuthorByName(name) {
-  return await prisma.author.findUnique({ where: { name } })
+  return await prisma.author.findUnique({ where: { name } });
 }
 export async function postAuthor(data) {
-  return await prisma.author.create({ data })
+  return await prisma.author.create({ data });
 }
 export async function patchAuthor(id, data) {
   return await prisma.author.update({
     where: { id },
-    data
-  })
+    data,
+  });
 }
 export async function deleteAuthor(id) {
-  return await prisma.author.delete({ where: { id } })
+  return await prisma.author.delete({ where: { id } });
 }
 
 // tag service section
 export async function getTags() {
-  return await prisma.tag.findMany()
+  return await prisma.tag.findMany();
 }
 export async function getTagsById(id) {
   return await prisma.tag.findUnique({
-    where: { id }
-  })
+    where: { id },
+  });
 }
 export async function getTagsArrById(ArrId) {
   return await prisma.tag.findMany({
     where: {
-      id: { in: ArrId }
+      id: { in: ArrId },
     },
     select: {
-      name: true
-    }
+      name: true,
+    },
   });
 }
 export async function getTagsByName(name) {
-  return await prisma.tag.findFirst({ where: { name } })
+  return await prisma.tag.findFirst({ where: { name } });
 }
 export async function postTags(data) {
-  return await prisma.tag.create({ data })
+  return await prisma.tag.create({ data });
 }
 export async function patchTags(id, data) {
   return await prisma.tag.update({
     where: { id },
-    data
-  })
+    data,
+  });
 }
 export async function deleteTags(id) {
-  return await prisma.tag.delete({ where: { id } })
+  return await prisma.tag.delete({ where: { id } });
 }
 
-// shelf / wishread service section 
+// shelf / wishread service section
 export async function getUserShelf(userId, shelfType) {
   const search = { userId };
   if (shelfType) {
@@ -504,11 +507,11 @@ export async function getUserShelf(userId, shelfType) {
           edition: {
             where: { isLatest: true },
             select: { coverImage: true },
-            take: 1
-          }
-        }
-      }
-    }
+            take: 1,
+          },
+        },
+      },
+    },
   });
 }
 
@@ -527,16 +530,16 @@ export async function patchUserShelf(userId, bookId, fromShelf, toShelf) {
   return await prisma.$transaction([
     prisma.shelf.delete({
       where: {
-        bookId_userId_ShelfType: { userId, bookId, ShelfType: fromShelf }
-      }
+        bookId_userId_ShelfType: { userId, bookId, ShelfType: fromShelf },
+      },
     }),
     prisma.shelf.create({
       data: {
         userId,
         bookId,
-        ShelfType: toShelf
-      }
-    })
+        ShelfType: toShelf,
+      },
+    }),
   ]);
 }
 
@@ -547,8 +550,8 @@ export async function deleteUserShelf(userId, bookId, shelfType) {
       bookId_userId_ShelfType: {
         userId,
         bookId,
-        ShelfType: shelfType
-      }
-    }
+        ShelfType: shelfType,
+      },
+    },
   });
 }
