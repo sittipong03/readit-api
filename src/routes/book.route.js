@@ -4,8 +4,6 @@ import uploadPic from "../middleware/upload-pic.middleware.js";
 
 const bookRoute = express.Router();
 
-const bookRoute = express.Router()
-
 // bookRoute.get('/bookname' , bookController.findbookbyname)
 
 // wishlist section 
