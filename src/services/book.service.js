@@ -243,7 +243,6 @@ export async function getBookById(id) {
       fourStarCount: true,
       fiveStarCount: true,
 
-
       //--- ดึงข้อมูล Author ที่เกี่ยวข้อง ---
       Author: {
         select: {
@@ -262,7 +261,7 @@ export async function getBookById(id) {
           pages: true,
         },
         orderBy: {
-          isLatest: 'desc' // เรียงให้ edition ล่าสุดขึ้นก่อน
+          isLatest: 'desc'
         }
       },
 
@@ -273,19 +272,32 @@ export async function getBookById(id) {
           title: true,
           content: true,
           reviewPoint: true,
+          createdAt: true, // ดึงเวลาที่สร้างรีวิวมาด้วย
           user: { // ดึงข้อมูล user ที่เขียนรีวิว
             select: {
               id: true,
-              name: true
+              name: true,
+              avatarUrl: true,
+              reviewCount: true,
+              followerCount: true,
+              // ดึงข้อมูล follower/following ของผู้รีวิว (ตามโค้ดก่อนหน้า)
+              followers: { select: { follower: { select: { id: true, name: true, avatarUrl: true } } } },
+              following: { select: { following: { select: { id: true, name: true, avatarUrl: true } } } }
+            }
+          },
+
+          // --- ส่วนที่เพิ่ม: นับจำนวน comments และ likes ---
+          _count: {
+            select: {
+              comments: true, // จะนับจำนวนคอมเมนต์ทั้งหมดที่เชื่อมกับรีวิวนี้
+              likes: true     // จะนับจำนวนไลก์ทั้งหมดที่เชื่อมกับรีวิวนี้
             }
           }
         },
-        // take: 5, // ตัวอย่าง: ดึงมาแค่ 5 รีวิวล่าสุด
         orderBy: {
           createdAt: 'desc'
         }
       },
-
       product: {
         select: {
           id: true,
@@ -298,7 +310,7 @@ export async function getBookById(id) {
       //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
       bookTag: {
         select: {
-          tag: { // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
+          tag: {
             select: {
               id: true,
               name: true,
@@ -505,7 +517,7 @@ export async function postUserShelf(userId, bookId, shelfType) {
     data: {
       userId,
       bookId,
-      ShelfType: shelfType
+      shelfType
     }
   });
 }
