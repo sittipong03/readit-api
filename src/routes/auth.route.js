@@ -78,7 +78,7 @@ authRoute.get(
       );
 
       // ส่ง user กลับไป frontend พร้อม token ใน URL parameter
-      const frontendURL = process.env.URL || "http://localhost:5173";
+      const frontendURL = process.env.URL_FRONTEND || "http://localhost:5173";
       // ตัวอย่าง URL ที่จะ redirect ไปยัง frontend
       // http://localhost:5173/auth/callback?token=eyJhbGciOiJI...
       res.redirect(`${frontendURL}/auth/callback?token=${token}`);
@@ -129,5 +129,6 @@ authRoute.post(
 );
 authRoute.get("/verification/:token", authController.verification);
 authRoute.delete("/:id", authController.deleteUser); // for quick test register and send node mailer
+authRoute.get("/refresh", authController.refreshToken); // for refresh token
 
 export default authRoute;

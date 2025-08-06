@@ -214,7 +214,7 @@ model BookTag {
 }
 
 enum ShelfType {
-  WISHREAD
+  WISHLIST
   CURRENTLY_READING
   READ
   FAVORITE
