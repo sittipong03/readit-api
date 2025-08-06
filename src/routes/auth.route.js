@@ -1,5 +1,5 @@
 import express from "express";
-// import passport from "../config/passport.config.js";
+import passport from "../config/passport.config.js";
 import * as authController from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import {
@@ -77,20 +77,21 @@ authRoute.get("/", (req, res) => {
 //         { expiresIn: "24h", algorithm: "HS256" }
 //       );
 
-//       // ส่ง user กลับไป frontend พร้อม token ใน URL parameter
-//       const frontendURL = process.env.URL || "http://localhost:5173";
-//       // ตัวอย่าง URL ที่จะ redirect ไปยัง frontend
-//       // http://localhost:5173/auth/callback?token=eyJhbGciOiJI...
-//       res.redirect(`${frontendURL}/auth/callback?token=${token}`);
-//       console.log("Token:", token);
-//       // user ถูกส่งไปยัง frontend แล้ว
-//       // frontend จะต้องมีหน้า /auth/callback เพื่อรับ token นี้
-//     } catch (error) {
-//       console.error(error);
-//       res.redirect(`${frontendURL}/auth/error?message=token_failed`);
-//     }
-//   }
-// );
+
+      // ส่ง user กลับไป frontend พร้อม token ใน URL parameter
+      const frontendURL = process.env.URL_FRONTEND || "http://localhost:5173";
+      // ตัวอย่าง URL ที่จะ redirect ไปยัง frontend
+      // http://localhost:5173/auth/callback?token=eyJhbGciOiJI...
+      res.redirect(`${frontendURL}/auth/callback?token=${token}`);
+      console.log("Token:", token);
+      // user ถูกส่งไปยัง frontend แล้ว
+      // frontend จะต้องมีหน้า /auth/callback เพื่อรับ token นี้
+    } catch (error) {
+      console.error(error);
+      res.redirect(`${frontendURL}/auth/error?message=token_failed`);
+    }
+  }
+);
 
 ////////////////////////////////////////////////////////////
 // passport.authenticate(
@@ -129,5 +130,6 @@ authRoute.post(
 );
 authRoute.get("/verification/:token", authController.verification);
 authRoute.delete("/:id", authController.deleteUser); // for quick test register and send node mailer
+authRoute.get("/refresh", authController.refreshToken); // for refresh token
 
 export default authRoute;
