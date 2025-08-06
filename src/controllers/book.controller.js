@@ -562,11 +562,11 @@ export async function deleteTag(req, res, next) {
 ////////////////////////////////////////////////////////////////
 export async function getUserShelf(req, res, next) {
   try {
-    // const userId = req.user.id; // mock รอ userId จาก middleware authentication
-    const { userId } = req.body; // mock ต้องลบทิ้งใช้ข้างบน
+    const userId = req.user.id; // mock รอ userId จาก middleware authentication
+    // const {userId} = req.body // mock ต้องลบทิ้งใช้ข้างบน
     const type = req.query.type;
 
-    const validTypes = ["WISHREAD", "CURRENTLY_READING", "READ", "FAVORITE"];
+    const validTypes = ["WISHLIST", "CURRENTLY_READING", "READ", "FAVORITE"];
     if (type && !validTypes.includes(type.toUpperCase())) {
       createError(400, "Invalid shelf type provided.");
     }
@@ -594,6 +594,8 @@ export async function createBookToShelf(req, res, next) {
     if (!bookExists) {
       createError(404, "Book not found.");
     }
+
+    console.log("first---------", { userId, bookId, shelfType });
 
     const newShelfItem = await bookService.postUserShelf(
       userId,

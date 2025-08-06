@@ -520,8 +520,8 @@ export async function postUserShelf(userId, bookId, shelfType) {
     data: {
       userId,
       bookId,
-      ShelfType: shelfType,
-    },
+      shelfType
+    }
   });
 }
 
