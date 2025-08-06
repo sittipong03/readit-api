@@ -32,7 +32,7 @@ export async function aiDoYouKnow(bookId) {
     data: { aiSuggestion: aiDoYouKnow }
   });
 
-  return updateBook;
+  return updateBook.aiSuggestion;
 }
 
 export async function aiSuggestion(bookId) {
