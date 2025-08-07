@@ -46,4 +46,8 @@ bookRoute.delete("/:id", bookController.deleteBook); // need authen check admin 
 
 // Route สำหรับ AI โดยเฉพาะ (ช้า)
 bookRoute.get("/:id/ai-suggestion", bookController.getAiSuggestionForBook);
+
+
+bookRoute.post("/edition", bookController.createEdition);
+
 export default bookRoute;

@@ -209,6 +209,121 @@ const tagData = [
     }
 ];
 
+const productdata = [
+  {
+    "sku": "FIC-KUAN-YELL-001-PB",
+    "stockQuantity": 352,
+    "price": 450.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjgep002xbwvwkiyanems"
+  },
+  {
+    "sku": "FIC-OWEN-WHER-001-PB",
+    "stockQuantity": 410,
+    "price": 495.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjv7n007lbwvw1x8u4d6o"
+  },
+  {
+    "sku": "FAN-HART-WEYW-001-PB",
+    "stockQuantity": 288,
+    "price": 475.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjgsp0030bwvwo4qoz8uz"
+  },
+  {
+    "sku": "THR-HOOV-VERI-001-PB",
+    "stockQuantity": 480,
+    "price": 399.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjytv008lbwvwk3c02wrd"
+  },
+  {
+    "sku": "ROM-HOOV-UGLY-001-PB",
+    "stockQuantity": 455,
+    "price": 380.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mk47n00a6bwvwes9upkn9"
+  },
+  {
+    "sku": "FIC-ZEVI-TOMO-001-PB",
+    "stockQuantity": 320,
+    "price": 520.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjked0046bwvwtsdt8knh"
+  },
+  {
+    "sku": "FAN-MAAS-THRO-001-PB",
+    "stockQuantity": 390,
+    "price": 485.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mk4h400a9bwvw692lmku4"
+  },
+  {
+    "sku": "HIF-HANN-WOME-001-PB",
+    "stockQuantity": 250,
+    "price": 550.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjkvf004cbwvwx0kam80q"
+  },
+  {
+    "sku": "MEM-SPEA-WOMA-001-PB",
+    "stockQuantity": 500,
+    "price": 425.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjlia004lbwvwjq2vziol"
+  },
+  {
+    "sku": "HIS-GRAN-WAGE-001-PB",
+    "stockQuantity": 180,
+    "price": 580.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjlqr004obwvw7ff3xr1r"
+  },
+  {
+    "sku": "MYS-OSMA-THUR-001-PB",
+    "stockQuantity": 425,
+    "price": 410.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjo2h005ibwvw0e5c556q"
+  },
+  {
+    "sku": "SHP-MANS-SUBT-001-PB",
+    "stockQuantity": 650,
+    "price": 295.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjqh50066bwvwkdnezzhl"
+  },
+  {
+    "sku": "HOR-KING-STAN-001-PB",
+    "stockQuantity": 210,
+    "price": 650.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mk3n300a0bwvwcy1kg9zi"
+  },
+  {
+    "sku": "HIF-MILL-SONG-001-PB",
+    "stockQuantity": 333,
+    "price": 490.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mk12a0099bwvwpao4zw16"
+  },
+  {
+    "sku": "THR-MICH-SILE-001-PB",
+    "stockQuantity": 460,
+    "price": 420.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjnrd005fbwvwyjokqc2q"
+  },
+  {
+    "sku": "HIF-REID-SEVE-001-PB",
+    "stockQuantity": 510,
+    "price": 480.00,
+    "productType": "PAPERBACK",
+    "bookId": "cme0mjvsy007rbwvwy4hszz0s"
+  }
+]
+
 // --- 🧑‍🎨 3. ข้อมูลนักเขียน ---
 const authors = [
     {
@@ -1826,7 +1941,7 @@ async function main() {
     const authorId = authorInfo.id;
     const authorName = authorInfo.name;
 
-        const searchKey = book.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        // const searchKey = book.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
         await prisma.book.create({
             data: {

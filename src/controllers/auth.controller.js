@@ -174,10 +174,15 @@ export async function getMe(req, res, next) {
     console.log("Type of req.user:", typeof req.user); // Debug
     console.log("req.user.userId:", req.user?.id); // Debug
 
+    req.user.userId = req.user.id; 
+    
     if (!req.user) {
       return createError(401, "User not authenticated");
     }
-
+    console.log("user.id")
+    console.log (req.user.id)
+    console.log("userId")
+    console.log(req.user.userId)
     if (!req.user.userId) {
       return createError(401, "User ID not found in request");
     }
