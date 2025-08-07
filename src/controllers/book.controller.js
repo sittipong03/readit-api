@@ -3,6 +3,7 @@ import * as bookService from "../services/book.service.js";
 import prisma from "../config/prisma.config.js";
 import cloudinary from "../config/cloudinary.config.js";
 import redis from "redis";
+import { ShelfType } from "@prisma/client";
 
 ////////////////////////////////////////////////////////////////
 // books section : getBooks ,getBookById, searchKeywordBooks , createBook , updateBook ,deleteBook
@@ -22,8 +23,8 @@ export async function searchBookByAI(req, res, next) {
 
 export async function aiDoYouKnow(req, res, next) {
   try {
-    const bookName = req.body;
-    const data = await bookService.aiDoYouKnow(bookName);
+    const { id } = req.params;
+    const data = await bookService.aiDoYouKnow(id);
     res.status(200).json({ book: data });
   } catch (error) {
     next(error);
@@ -583,7 +584,7 @@ export async function getUserShelf(req, res, next) {
 export async function createBookToShelf(req, res, next) {
   try {
     // const userId = req.user.id; // mock รอ userId จาก middleware authentication
-    const { bookId, shelfType, userId } = req.body; // mock userId ต้อง เอา userId ออก
+    const { bookId, shelfType , userId } = req.body; // mock userId ต้อง เอา userId ออก
 
     if (!bookId || !shelfType) {
       createError(400, "bookId and shelfType are required.");
@@ -600,7 +601,7 @@ export async function createBookToShelf(req, res, next) {
     const newShelfItem = await bookService.postUserShelf(
       userId,
       bookId,
-      shelfType
+      shelfType 
     );
     res.json(newShelfItem);
   } catch (error) {

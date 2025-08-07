@@ -13,7 +13,7 @@ bookRoute.delete(
   "/wishlist/:bookId/:shelfType",
   authMiddleware,
   bookController.deleteBookFromShelf
-);
+); // need authen check User middleware
 
 // author section
 bookRoute.get("/authors", bookController.getAuthors);
@@ -25,7 +25,8 @@ bookRoute.delete("/authors/:id", bookController.deleteAuthor); // need authen ch
 
 // Search book by AI
 // bookRoute.post("/search", bookController.searchBookByAI)
-bookRoute.post("/searchAI", bookController.searchBookByAI); //Search book by AI
+bookRoute.post('/searchAI' , bookController.searchBookByAI) //Search book by AI
+bookRoute.get('/:id/ai-suggestion' , bookController.aiDoYouKnow) //Search book by AI
 
 // Id
 bookRoute.get("/:id", bookController.getBookById);

@@ -1,10 +1,8 @@
 import { tr } from "@faker-js/faker";
 import prisma from "../config/prisma.config.js";
-import {
-  searchBooks,
-  doYouKnow,
-  recommandBooks,
-} from "../middleware/ai.middleware.js";
+import { searchBooks, doYouKnow, recommandBooks } from "../middleware/ai.middleware.js";
+import { ShelfType } from "@prisma/client";
+
 
 // book service section
 
@@ -109,14 +107,15 @@ export async function aiDoYouKnow(bookId) {
       id: bookId,
     },
   });
+  console.log(selectBook);
   const aiDoYouKnow = await doYouKnow(selectBook.title);
-  console.log(aiDoYouKnow);
+  // console.log(aiDoYouKnow);
   const updateBook = await prisma.book.update({
     where: { id: bookId },
     data: { aiSuggestion: aiDoYouKnow },
   });
 
-  return updateBook.aiSuggestion;
+  return updateBook;
 }
 
 export async function aiSuggestion(bookId) {
@@ -516,13 +515,15 @@ export async function getUserShelf(userId, shelfType) {
 }
 
 export async function postUserShelf(userId, bookId, shelfType) {
-  return await prisma.shelf.create({
+  const result = await prisma.shelf.create({
     data: {
       userId,
       bookId,
       shelfType
     }
-  });
+  })
+
+  return result;
 }
 
 export async function patchUserShelf(userId, bookId, fromShelf, toShelf) {
