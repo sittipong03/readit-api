@@ -15,7 +15,7 @@ export async function testGet(req, res, next) {
 export async function getMe(req, res, next) {
   try {
     const userId = req.user.id;
-    const user = await userService.getUserById(userId);
+    const user = await userService.getFullUserById(userId);
     res.json({ result: user });
   } catch (error) {
     next(error);
@@ -136,3 +136,21 @@ export const deleteCurrentUser = async (req, res, next) => {
     next(error);
   }
 };
+
+
+export async function handleUpdateUserPreferences(req, res, next) {
+  try {
+    const userId = req.user.id; 
+    const { tagIds } = req.body;
+
+    if (!Array.isArray(tagIds) || tagIds.length < 5 || tagIds.length > 8) {
+      return createError(400, 'Invalid number of tags. Must be between 5 and 8.');
+    }
+
+    await userService.updateUserPreferencesService(userId, tagIds);
+
+    res.status(200).json({ message: "User preferences updated successfully." });
+  } catch (error) {
+    next(error);
+  }
+}

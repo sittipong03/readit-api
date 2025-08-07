@@ -25,6 +25,93 @@ export async function getUserById(id) {
   return user;
 }
 
+export async function getFullUserById(id) {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      // --- ข้อมูล User หลัก ---
+      id: true,
+      name: true,
+      email: true, // อาจจะไม่ต้องส่งไปถ้าไม่จำเป็น
+      avatarUrl: true,
+      createdAt: true,
+
+      // --- ดึงจาก Field ที่ทำ Denormalize ไว้แล้ว (ถูกต้องและเร็วมาก) ---
+      followerCount: true,
+      reviewCount: true,
+
+      _count: {
+        select: {
+          following: true, // ✅ จำนวนที่ user คนนี้ไปติดตามคนอื่น
+          likes: true, // ✅ จำนวนที่ user คนนี้ไปกดไลก์รีวิว
+        },
+      },
+
+      // --- ดึงข้อมูล Relation ที่ซับซ้อน (Include) ---
+
+      // 1. ดึงรีวิวล่าสุด 5 รายการ
+      review: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          // ซ้อนเข้าไปเพื่อดึงข้อมูลหนังสือของรีวิวนั้นๆ
+          book: {
+            select: {
+              id: true,
+              title: true,
+              // ดึง coverImage จาก Edition ที่เป็น isLatest
+              edition: {
+                where: { isLatest: true },
+                select: {
+                  coverImage: true,
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // 2. ดึงข้อมูลชั้นหนังสือ (Shelves) ทั้งหมด
+      shelf: {
+        orderBy: { addedAt: "desc" },
+        select: {
+          shelfType: true,
+          addedAt: true,
+          // ดึงข้อมูลหนังสือในชั้นนั้นๆ
+          book: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      },
+
+      // 3. ดึงที่อยู่หลัก (Default Address)
+      userAddress: {
+        where: { isDefault: true },
+      },
+
+      bookTagPreference: {
+        // เลือกเฉพาะข้อมูลของ Tag ที่เกี่ยวข้อง
+        select: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return user;
+}
+
 export const updateUserProfileAndAddress = async (userId, profileData) => {
   const updatedData = await prisma.$transaction(async (tx) => {
     const userDataToUpdate = {};
@@ -152,4 +239,33 @@ export async function patchAddressById(userid, data) {
     where: { userid },
     data,
   });
+}
+
+export async function updateUserPreferencesService(userId, tagIds) {
+  return await prisma.$transaction([
+    prisma.bookTagPreference.deleteMany({
+      where: { userId: userId },
+    }),
+    prisma.bookTagPreference.createMany({
+      data: tagIds.map((tagId) => ({
+        userId: userId,
+        tagId: tagId,
+      })),
+    }),
+  ]);
+}
+
+export async function getUserPreferencesService(userId) {
+  const preferences = await prisma.bookTagPreference.findMany({
+    where: {
+      userId: userId,
+    },
+    select: {
+      tagId: true,
+    },
+  });
+
+  // แปลงผลลัพธ์จาก [{ tagId: '...' }, { tagId: '...' }]
+  // ให้เป็น array ของ string ง่ายๆ -> ['...', '...']
+  return preferences.map((p) => p.tagId);
 }
