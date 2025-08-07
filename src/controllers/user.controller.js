@@ -14,7 +14,7 @@ export async function testGet(req, res, next) {
 
 export async function getMe(req, res, next) {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const user = await userService.getFullUserById(userId);
     res.json({ result: user });
   } catch (error) {
@@ -113,7 +113,7 @@ export async function updatePassword(req, res, next) {
 
 export const updateAvatar = async (req, res, next) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { avatarUrl } = req.body;
 
     if (!avatarUrl) {
@@ -129,7 +129,7 @@ export const updateAvatar = async (req, res, next) => {
 
 export const deleteCurrentUser = async (req, res, next) => {
   try {
-    const userIdToDelete = req.user.userId;
+    const userIdToDelete = req.user.id;
     await userService.deleteUserAccount(userIdToDelete);
     res.status(204).send();
   } catch (error) {
@@ -140,7 +140,7 @@ export const deleteCurrentUser = async (req, res, next) => {
 
 export async function handleUpdateUserPreferences(req, res, next) {
   try {
-    const userId = req.user.userId; 
+    const userId = req.user.id; 
     const { tagIds } = req.body;
 
     if (!Array.isArray(tagIds) || tagIds.length < 5 || tagIds.length > 8) {

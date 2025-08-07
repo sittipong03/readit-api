@@ -1,45 +1,51 @@
 import createError from "../utils/create-error.util.js";
+import prisma from "../config/prisma.config.js";
 import jwt from "jsonwebtoken";
 
-export function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
-    console.log("Authorization header", authHeader);
-
     let token = null;
 
     if (authHeader?.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
-      console.log("Extracted token", token);
     }
 
-    // ✅ ถ้าไม่มี Bearer token ให้ลองหาจาก query parameter
     if (!token && req.query.token) {
       token = req.query.token;
-      console.log("Token from query", token);
     }
 
-    // ✅ ถ้าไม่มี token เลย ถึงจะ throw error
     if (!token) {
-      console.log("No valid bearer token found");
-      throw createError(401, "Token missing");
+      return next(createError(401, "Token missing"));
     }
-    jwt.verify(token, process.env.JWT_SECRET_KEY, (error, decoded) => {
-      if (error) {
-        console.log("JWT verification error", error);
-        return createError(401, "Token invalid");
-      }
 
-      console.log("Decoded token", decoded);
-      console.log("User object--", decoded.user);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-      req.user = decoded.user ?? decoded;
-      req.user.userId = decoded.user.id 
+    // FIX: ทำให้สามารถหา ID จาก Token ได้ทุกรูปแบบ
+    // 1. จาก Login/Refresh Token: decoded.id
+    // 2. จาก Google Token: decoded.user.id
+    // 3. จาก Token รูปแบบเก่า (ถ้ามี): decoded.userId
+    const userId = decoded.id || decoded.user?.id || decoded.userId;
 
-      next();
+    if (!userId) {
+      return next(createError(401, "Invalid token payload: User ID missing"));
+    }
+
+    // ตรวจสอบว่าผู้ใช้มีตัวตนจริงในฐานข้อมูล
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
+
+    if (!user) {
+      return next(createError(401, "User from token not found in database."));
+    }
+    
+    // ส่งต่อข้อมูล user ทั้งหมดไปกับ request
+    req.user = user;
+    
+    next();
   } catch (error) {
-    console.log("Middleware catch error", error);
+    // catch block นี้จะดักจับ error ได้ทั้งหมด (เช่น token หมดอายุ)
     next(error);
   }
 }
