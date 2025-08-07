@@ -34,6 +34,7 @@ export function authMiddleware(req, res, next) {
       console.log("User object--", decoded.user);
 
       req.user = decoded.user ?? decoded;
+      req.user.userId = decoded.user.id 
 
       next();
     });

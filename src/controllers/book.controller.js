@@ -705,3 +705,13 @@ export const getAiSuggestionForBook = async (req, res) => {
     res.status(500).json({ message: "Failed to generate AI suggestion." });
   }
 };
+
+export const createEdition = async (req,res , next)=>{
+    try {
+    const result  = await bookService.postEdition(req.body)
+    res.json(result)
+    } catch (error) {
+        next(error)
+    }
+
+}

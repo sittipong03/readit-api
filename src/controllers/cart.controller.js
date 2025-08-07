@@ -15,9 +15,9 @@ export async function getCart(req, res, next) {
 
 export async function addToCart(req, res, next) {
   try {
-    // const userId = req.user.id;
+    const userId = req.user.userId;
 
-    const { productId, quantity, userId } = req.body;
+    const { productId, quantity } = req.body;
 
     if (!productId || !quantity || quantity <= 0) {
       throw createError(400, "กรุณาระบุ productId และ quantity ให้ถูกต้อง");
