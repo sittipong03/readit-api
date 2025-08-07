@@ -23,8 +23,8 @@ export async function searchBookByAI(req, res, next) {
 
 export async function aiDoYouKnow(req, res, next) {
   try {
-    const bookName = req.body;
-    const data = await bookService.aiDoYouKnow(bookName);
+    const { id } = req.params;
+    const data = await bookService.aiDoYouKnow(id);
     res.status(200).json({ book: data });
   } catch (error) {
     next(error);

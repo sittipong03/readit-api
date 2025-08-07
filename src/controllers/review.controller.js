@@ -11,11 +11,12 @@ export async function createReview(req, res) {
   const { bookId } = req.params;
   const { title, content, reviewPoint } = req.body;
 
-  if (!req.user || !req.user.id) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+  // if (!req.user || !req.user.id) {
+  //   return res.status(401).json({ message: "Unauthorized" });
+  // }
 
-  const userId = req.user.id;
+  const userId = req.user.userId;
+  console.log('userId', userId)
 
 
   try {

@@ -223,14 +223,14 @@ enum ShelfType {
 model Shelf {
   addedAt DateTime @default(now())
 
-  shelfType ShelfType
+  ShelfType ShelfType
 
   bookId String
   book   Book   @relation(fields: [bookId], references: [id])
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  @@id([bookId, userId, shelfType])
+  @@id([bookId, userId, ShelfType])
 }
 
 model BookTagPreference {
