@@ -79,6 +79,7 @@ export async function login(req, res, next) {
     };
     const refreshTokenPayload = {
       id: user.id, // Use 'id' for consistency
+      role: user.role,
     };
 
     const accessToken = jwt.sign(accessTokenPayload, process.env.JWT_SECRET_KEY, {
