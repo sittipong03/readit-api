@@ -555,3 +555,27 @@ export async function deleteUserShelf(userId, bookId, shelfType) {
     },
   });
 }
+
+export async function submitTagsForUser(userId, tagIds) {
+  // Use a transaction to delete old and insert new atomically
+  return await prisma.$transaction(async (tx) => {
+    // Delete all existing tag preferences for the user
+    await tx.bookTagPreference.deleteMany({
+      where: { userId },
+    });
+
+    // Prepare new entries
+    const newPreferences = tagIds.map((tagId) => ({
+      userId,
+      tagId,
+    }));
+
+    // Insert new tag preferences
+    if (newPreferences.length > 0) {
+      await tx.bookTagPreference.createMany({
+        data: newPreferences,
+        skipDuplicates: true, // just in case
+      });
+    }
+  });
+}

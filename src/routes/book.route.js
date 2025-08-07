@@ -22,19 +22,21 @@ bookRoute.patch("/authors/:id", bookController.updateAuthor); // need authen che
 bookRoute.delete("/authors/:id", bookController.deleteAuthor); // need authen check admin middleware
 
 // tags section
+bookRoute.get("/has-tags", authMiddleware, bookController.checkUserHasTags);
+bookRoute.post("/submit-tags", authMiddleware, bookController.submitTags);
 
 // Search book by AI
 // bookRoute.post("/search", bookController.searchBookByAI)
 bookRoute.post("/searchAI", bookController.searchBookByAI); //Search book by AI
 
+// tags
+bookRoute.get("/tags", authMiddleware, bookController.getTags);
+bookRoute.post("/tags", authMiddleware, bookController.createTag); // need authen check admin middleware
+bookRoute.patch("/tags/:id", authMiddleware, bookController.updateTag); // need authen check admin middleware
+bookRoute.delete("/tags/:id", authMiddleware, bookController.deleteTag); // need authen check admin middleware
+
 // Id
 bookRoute.get("/:id", bookController.getBookById);
-
-// tags
-bookRoute.get("/tags", bookController.getTags);
-bookRoute.post("/tags", bookController.createTag); // need authen check admin middleware
-bookRoute.patch("/tags/:id", bookController.updateTag); // need authen check admin middleware
-bookRoute.delete("/tags/:id", bookController.deleteTag); // need authen check admin middleware
 
 /// book section
 bookRoute.get("/", bookController.getBooks);

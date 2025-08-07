@@ -715,3 +715,36 @@ export const createEdition = async (req,res , next)=>{
     }
 
 }
+
+export const submitTags = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { tagIds } = req.body;
+
+    if (!Array.isArray(tagIds) || tagIds.length === 0) {
+      return res.status(400).json({ message: "tagIds must be a non-empty array." });
+    }
+
+    await bookService.submitTagsForUser(userId, tagIds);
+
+    return res.status(200).json({ message: "Tags submitted successfully." });
+  } catch (error) {
+    console.error("submitTags error:", error);
+    return res.status(500).json({ message: "Server error submitting tags." });
+  }
+};
+
+export const checkUserHasTags = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const count = await prisma.bookTagPreference.count({
+      where: { userId },
+    });
+
+    return res.status(200).json({ hasTags: count > 0 });
+  } catch (error) {
+    console.error("checkUserHasTags error:", error);
+    return res.status(500).json({ message: "Server error checking tags." });
+  }
+};
