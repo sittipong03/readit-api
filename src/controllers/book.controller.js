@@ -20,6 +20,16 @@ export async function searchBookByAI(req, res, next) {
     next(error);
   }
 }
+export async function searchBookTagByAI(req, res, next) {
+  try {
+    const books = req.body;
+    const data = await bookService.searchBookByAI(books);
+    // console.log("data", data);
+    res.status(200).json({ books: data });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function aiDoYouKnow(req, res, next) {
   try {
