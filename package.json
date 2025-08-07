@@ -7,6 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server",
     "seed-book": "node prisma/seedBook.js",
+    "seed-book4": "node prisma/seedBook4.js",
+    "seed-book3": "node prisma/seedBook3.js",
+    "seed-book5": "node prisma/seedBook5.js",
     "prisma": "dotenv -e .env -- prisma"
   },
   "prisma": {
