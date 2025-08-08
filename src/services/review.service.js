@@ -2,6 +2,8 @@ import prisma from "../config/prisma.config.js";
 
 export async function createReviewService(userId, bookId, title, content, reviewPoint) {
   // Optional: Check if user already submitted a review
+  console.log("createReviewService userId:");
+  console.log(userId);
   const existing = await prisma.review.findFirst({
     where: {
       userId,

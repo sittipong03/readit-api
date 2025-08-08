@@ -15,7 +15,7 @@ export async function createReview(req, res) {
   //   return res.status(401).json({ message: "Unauthorized" });
   // }
 
-  const userId = req.user.userId;
+  const userId = req.user.id;
   console.log('userId', userId)
 
 
