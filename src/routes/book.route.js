@@ -1,7 +1,9 @@
 import express from "express";
 import * as bookController from "../controllers/book.controller.js";
 import uploadPic from "../middleware/upload-pic.middleware.js";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authMiddleware, optionalAuthMiddleware } from "../middleware/auth.middleware.js";
+
+
 
 const bookRoute = express.Router();
 
@@ -25,9 +27,9 @@ bookRoute.delete("/authors/:id", bookController.deleteAuthor); // need authen ch
 
 // Search book by AI
 // bookRoute.post("/search", bookController.searchBookByAI)
-bookRoute.post('/searchAI' , bookController.searchBookByAI) //Search book by AI
-bookRoute.get('/:id/ai-suggestion' , bookController.aiDoYouKnow) //Search book by AI
-bookRoute.post('/searchTagAI' , bookController.searchBookTagByAI) 
+bookRoute.post('/searchAI' , optionalAuthMiddleware, bookController.searchBookByAI) //Search book by AI
+bookRoute.get('/:id/ai-suggestion' , optionalAuthMiddleware, bookController.aiDoYouKnow) //Search book by AI
+bookRoute.post('/searchTagAI' , optionalAuthMiddleware, bookController.searchBookTagByAI) 
 
 // Id
 bookRoute.get("/:id", bookController.getBookById);
@@ -39,7 +41,7 @@ bookRoute.patch("/tags/:id", bookController.updateTag); // need authen check adm
 bookRoute.delete("/tags/:id", bookController.deleteTag); // need authen check admin middleware
 
 /// book section
-bookRoute.get("/", bookController.getBooks);
+bookRoute.get("/", optionalAuthMiddleware, bookController.getBooks);
 bookRoute.post("/", bookController.createBook); // need authen check admin middleware
 bookRoute.get("/search", bookController.searchKeywordBooks);
 bookRoute.get("/:id", bookController.getBookById);

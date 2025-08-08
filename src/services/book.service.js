@@ -1,17 +1,114 @@
 import { tr } from "@faker-js/faker";
 import prisma from "../config/prisma.config.js";
-import { searchBooks, doYouKnow, recommandBooks } from "../middleware/ai.middleware.js";
+import {
+  searchBooks,
+  doYouKnow,
+  recommandBooks,
+} from "../middleware/ai.middleware.js";
 import { ShelfType } from "@prisma/client";
-
 
 // book service section
 
 // Search book by AI
-export async function searchBookByAI(books) {
+export async function searchBookByAI(books, userId) { // 1. รับ userId เพิ่ม
   const bookResult = await searchBooks(books);
   console.log("bookResult", bookResult);
   const booksArr = bookResult.split(",");
-  // console.log("bookarr", booksArr);
+
+  // 2. ยก select query ที่สมบูรณ์มาจาก getBooks
+  // เพื่อให้โครงสร้างข้อมูลเหมือนกัน 100%
+  const selectQuery = {
+    id: true,
+    title: true,
+    description: true,
+    aiSuggestion: true,
+    ratingCount: true,
+    reviewCount: true,
+    averageRating: true,
+    oneStarCount: true,
+    twoStarCount: true,
+    threeStarCount: true,
+    fourStarCount: true,
+    fiveStarCount: true,
+    Author: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+    review: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        reviewPoint: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      take: 5,
+      orderBy: {
+        createdAt: "desc",
+      },
+    },
+    edition: {
+      select: {
+        id: true,
+        isbn: true,
+        coverImage: true,
+        isLatest: true,
+        pages: true,
+      },
+      orderBy: {
+        isLatest: "desc",
+      },
+    },
+    product: {
+      select: {
+        id: true,
+        price: true,
+        stockQuantity: true,
+      },
+    },
+    bookTag: {
+      select: {
+        tag: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+  };
+
+  // 3. ✨ ส่วนสำคัญ: เพิ่มข้อมูล rating ถ้ามี userId ส่งมา ✨
+  if (userId) {
+    selectQuery.rating = {
+      where: {
+        userId: userId,
+      },
+      select: {
+        rating: true,
+      },
+    };
+
+    // (Optional) คุณอาจจะอยากให้ review ที่ดึงมาเป็นของ user คนนั้นๆ ด้วย
+    selectQuery.review = {
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+      },
+    };
+  }
+
   return await prisma.book.findMany({
     where: {
       OR: booksArr.flatMap((book) => [
@@ -19,85 +116,7 @@ export async function searchBookByAI(books) {
         { searchKey: { contains: book } },
       ]),
     },
-    select: {
-      //--- เลือก field จากโมเดล Book ---
-      id: true,
-      title: true,
-      description: true,
-      aiSuggestion: true,
-      ratingCount: true,
-      reviewCount: true,
-      averageRating: true,
-      oneStarCount: true,
-      twoStarCount: true,
-      threeStarCount: true,
-      fourStarCount: true,
-      fiveStarCount: true,
-
-      //--- ดึงข้อมูล Author ที่เกี่ยวข้อง ---
-      Author: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-
-      //--- ดึงข้อมูล Edition ทั้งหมดของหนังสือเล่มนี้ ---
-      edition: {
-        select: {
-          id: true,
-          isbn: true,
-          coverImage: true,
-          isLatest: true,
-          pages: true,
-        },
-        orderBy: {
-          isLatest: "desc", // เรียงให้ edition ล่าสุดขึ้นก่อน
-        },
-      },
-
-      //--- ดึงข้อมูล Review ทั้งหมดของหนังสือเล่มนี้ ---
-      review: {
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          reviewPoint: true,
-          user: {
-            // ดึงข้อมูล user ที่เขียนรีวิว
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        // take: 5, // ตัวอย่าง: ดึงมาแค่ 5 รีวิวล่าสุด
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-      product: {
-        select: {
-          id: true,
-          sku: true,
-          price: true,
-          stockQuantity: true,
-          productType: true,
-        },
-      },
-      //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
-      bookTag: {
-        select: {
-          tag: {
-            // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
+    select: selectQuery, // 4. ใช้ select query ตัวใหม่นี้
   });
 }
 
@@ -144,89 +163,152 @@ export async function getAllNameBook() {
   });
 }
 
-export async function getBooks() {
-  return await prisma.book.findMany({
-    select: {
-      //--- เลือก field จากโมเดล Book ---
-      id: true,
-      title: true,
-      description: true,
-      aiSuggestion: true,
-      ratingCount: true,
-      reviewCount: true,
-      averageRating: true,
-      oneStarCount: true,
-      twoStarCount: true,
-      threeStarCount: true,
-      fourStarCount: true,
-      fiveStarCount: true,
+export async function getBooks({ userId, sortBy, page, limit }) {
+  const skip = (page - 1) * limit;
 
-      //--- ดึงข้อมูล Author ที่เกี่ยวข้อง ---
-      Author: {
-        select: {
-          id: true,
-          name: true,
-        },
+  let orderBy = {};
+  switch (sortBy) {
+    case "rating":
+      orderBy = { averageRating: "desc" };
+      break;
+    case "title_asc":
+      orderBy = { title: "asc" };
+      break;
+    case "title_desc":
+      orderBy = { title: "desc" };
+      break;
+    case "popularity":
+    default:
+      orderBy = { ratingCount: "desc" };
+      break;
+  }
+
+  // สร้าง select query พื้นฐาน
+  const selectQuery = {
+    id: true,
+    title: true,
+    description: true,
+    aiSuggestion: true,
+    ratingCount: true,
+    reviewCount: true,
+    averageRating: true,
+    oneStarCount: true,
+    twoStarCount: true,
+    threeStarCount: true,
+    fourStarCount: true,
+    fiveStarCount: true,
+
+    //--- ดึงข้อมูล Author ---
+    Author: {
+      select: {
+        id: true,
+        name: true,
       },
+    },
 
-      //--- ดึงข้อมูล Edition ทั้งหมดของหนังสือเล่มนี้ ---
-      edition: {
-        select: {
-          id: true,
-          isbn: true,
-          coverImage: true,
-          isLatest: true,
-          pages: true,
-        },
-        orderBy: {
-          isLatest: "desc", // เรียงให้ edition ล่าสุดขึ้นก่อน
-        },
-      },
-
-      //--- ดึงข้อมูล Review ทั้งหมดของหนังสือเล่มนี้ ---
-      review: {
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          reviewPoint: true,
-          user: {
-            // ดึงข้อมูล user ที่เขียนรีวิว
-            select: {
-              id: true,
-              name: true,
-            },
+    //--- FIX: ดึงข้อมูล Review ---
+    review: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        reviewPoint: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
           },
         },
-        // take: 5, // ตัวอย่าง: ดึงมาแค่ 5 รีวิวล่าสุด
-        orderBy: {
-          createdAt: "desc",
-        },
       },
-      product: {
-        select: {
-          id: true,
-          sku: true,
-          price: true,
-          stockQuantity: true,
-          productType: true,
-        },
+      take: 5, // ดึงรีวิวล่าสุดมา 5 อัน
+      orderBy: {
+        createdAt: "desc",
       },
-      //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
-      bookTag: {
-        select: {
-          tag: {
-            // เข้าถึงโมเดล Tag ที่อยู่ลึกเข้าไป
-            select: {
-              id: true,
-              name: true,
-            },
+    },
+
+    //--- ดึงข้อมูล Edition ---
+    edition: {
+      select: {
+        id: true,
+        isbn: true,
+        coverImage: true,
+        isLatest: true,
+        pages: true,
+      },
+      orderBy: {
+        isLatest: "desc",
+      },
+    },
+
+    //--- ดึงข้อมูล Product ---
+    product: {
+      select: {
+        id: true,
+        price: true,
+        stockQuantity: true,
+      },
+    },
+
+    //--- ดึงข้อมูล Tag ---
+    bookTag: {
+      select: {
+        tag: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
     },
-  });
+  };
+
+  // --- userId ให้ดึง rating และ review ของ user คนนั้นโดยเฉพาะ ---
+  if (userId) {
+    selectQuery.rating = {
+      where: {
+        userId: userId,
+      },
+      select: {
+        rating: true,
+      },
+    };
+
+    selectQuery.review = {
+      where: {
+        userId: userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+      },
+    };
+  }
+
+  // ดึงข้อมูลหนังสือและนับจำนวนทั้งหมดพร้อมกันโดยใช้ transaction
+  const [books, totalBooks] = await prisma.$transaction([
+    prisma.book.findMany({
+      select: selectQuery,
+      orderBy: orderBy,
+      skip: skip,   // ข้ามข้อมูล
+      take: limit,  // เอามาตามจำนวนที่กำหนด
+    }),
+    prisma.book.count() // นับจำนวนหนังสือทั้งหมด
+  ]);
+
+  const totalPages = Math.ceil(totalBooks / limit);
+
+  return {
+    books, 
+    pagination: {
+      currentPage: page,
+      totalPages: totalPages,
+      hasNextPage: page < totalPages,
+      totalBooks: totalBooks
+    }
+  };
 }
+
 export async function getBookById(id) {
   return await prisma.book.findUnique({
     where: { id },
@@ -263,8 +345,8 @@ export async function getBookById(id) {
           pages: true,
         },
         orderBy: {
-          isLatest: 'desc'
-        }
+          isLatest: "desc",
+        },
       },
 
       //--- ดึงข้อมูล Review ทั้งหมดของหนังสือเล่มนี้ ---
@@ -275,7 +357,8 @@ export async function getBookById(id) {
           content: true,
           reviewPoint: true,
           createdAt: true, // ดึงเวลาที่สร้างรีวิวมาด้วย
-          user: { // ดึงข้อมูล user ที่เขียนรีวิว
+          user: {
+            // ดึงข้อมูล user ที่เขียนรีวิว
             select: {
               id: true,
               name: true,
@@ -283,22 +366,34 @@ export async function getBookById(id) {
               reviewCount: true,
               followerCount: true,
               // ดึงข้อมูล follower/following ของผู้รีวิว (ตามโค้ดก่อนหน้า)
-              followers: { select: { follower: { select: { id: true, name: true, avatarUrl: true } } } },
-              following: { select: { following: { select: { id: true, name: true, avatarUrl: true } } } }
-            }
+              followers: {
+                select: {
+                  follower: {
+                    select: { id: true, name: true, avatarUrl: true },
+                  },
+                },
+              },
+              following: {
+                select: {
+                  following: {
+                    select: { id: true, name: true, avatarUrl: true },
+                  },
+                },
+              },
+            },
           },
 
           // --- ส่วนที่เพิ่ม: นับจำนวน comments และ likes ---
           _count: {
             select: {
               comments: true, // จะนับจำนวนคอมเมนต์ทั้งหมดที่เชื่อมกับรีวิวนี้
-              likes: true     // จะนับจำนวนไลก์ทั้งหมดที่เชื่อมกับรีวิวนี้
-            }
-          }
+              likes: true, // จะนับจำนวนไลก์ทั้งหมดที่เชื่อมกับรีวิวนี้
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: "desc",
+        },
       },
       product: {
         select: {
@@ -307,7 +402,7 @@ export async function getBookById(id) {
           price: true,
           stockQuantity: true,
           productType: true,
-        }
+        },
       },
       //--- ดึงข้อมูล Tag ผ่านตาราง BookTag ---
       bookTag: {
@@ -519,9 +614,9 @@ export async function postUserShelf(userId, bookId, shelfType) {
     data: {
       userId,
       bookId,
-      shelfType
-    }
-  })
+      shelfType,
+    },
+  });
 
   return result;
 }

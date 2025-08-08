@@ -21,6 +21,7 @@ import productRoute from "./routes/product.route.js";
 import { authMiddleware } from "./middleware/auth.middleware.js";
 import cookieParser from "cookie-parser";
 import tagRoute from "./routes/tag.route.js";
+import ratingRoute from "./routes/rating.route.js";
 const app = express();
 
 app.use(
@@ -47,6 +48,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/book", bookRoute);
 app.use("/api/tags", tagRoute);
+app.use("/api/rate", ratingRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/comment", commentRoute);
 app.use("/api/cart", cartRoute);

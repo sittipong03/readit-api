@@ -4,6 +4,6 @@ import { authMiddleware } from '../middleware/auth.middleware.js';
 
 const ratingRoute = express.Router()
 
-ratingRoute.post('/:id/rating', authMiddleware, ratingController.rate);
+ratingRoute.post('/:id', authMiddleware, ratingController.rate);
 
 export default ratingRoute
