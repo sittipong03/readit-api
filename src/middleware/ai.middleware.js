@@ -88,7 +88,8 @@ export const recommandBooks = async (bookName) => {
 export const doYouKnow = async(book) => {
   try {
     const prompt = ChatPromptTemplate.fromMessages([
-      ["system", 'Make your self as book suggestion , if people ask about the book , give them the engaging questions to spark interest in the books among internet users, focusing on popular online topics or stories about writing, The result must be within 30 words and exclude the book title'],
+      // ["system", 'Make your self as book suggestion , if people ask about the book , give them the engaging questions to spark interest in the books among internet users, focusing on popular online topics or stories about writing, The result must be within 40 words and exclude the book title'],
+      ["system", 'Make your self as book suggestion , if people ask about the book , give them the engaging questions to spark interest in the books among internet users, focusing on popular online topics or stories about writing, Please return 10 results and each result must be within 40 words separate each result by "|" and exclude the book title'],
       ["human", "{input}"]
     ]);
     const parser = new StringOutputParser();

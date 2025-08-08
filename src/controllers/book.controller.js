@@ -3,6 +3,7 @@ import * as bookService from "../services/book.service.js";
 import prisma from "../config/prisma.config.js";
 import cloudinary from "../config/cloudinary.config.js";
 import redis from "redis";
+import { ShelfType } from "@prisma/client";
 
 ////////////////////////////////////////////////////////////////
 // books section : getBooks ,getBookById, searchKeywordBooks , createBook , updateBook ,deleteBook
@@ -11,9 +12,24 @@ import redis from "redis";
 // Search book by AI
 export async function searchBookByAI(req, res, next) {
   try {
+    const userId = req.user?.id; 
     const books = req.body;
-    // console.log("books", books);
+    // ส่ง userId เข้าไปใน service
+    const data = await bookService.searchBookByAI(books, userId); 
+    res.status(200).json({ 
+      books: data,
+      pagination: { hasNextPage: false } // AI Search ยังไม่มี pagination
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function searchBookTagByAI(req, res, next) {
+  try {
+    const books = req.body;
     const data = await bookService.searchBookByAI(books);
+    // console.log("data", data);
     res.status(200).json({ books: data });
   } catch (error) {
     next(error);
@@ -22,8 +38,8 @@ export async function searchBookByAI(req, res, next) {
 
 export async function aiDoYouKnow(req, res, next) {
   try {
-    const bookName = req.body;
-    const data = await bookService.aiDoYouKnow(bookName);
+    const { id } = req.params;
+    const data = await bookService.aiDoYouKnow(id);
     res.status(200).json({ book: data });
   } catch (error) {
     next(error);
@@ -63,13 +79,22 @@ export async function aiDoYouKnow(req, res, next) {
 
 export async function getBooks(req, res, next) {
   try {
-    const data = await bookService.getBooks();
-    // ต้องปั้นใหม่ ให้สวย ส่ง front end รอดูว่า front ต้องการอะไรไปโชว์บ้าง
+    console.log("req.user?.id");
+    console.log(req.user?.id);
+    const userId = req.user?.id;
+
+    // รับค่า page, limit, sortBy จาก query string
+    const page = parseInt(req.query.page) || 1; // เริ่มที่ 1
+    const limit = parseInt(req.query.limit) || 24; // จำนวนข้อมูลต่อหน้า, ค่าเริ่มต้น 24
+    const sortBy = req.query.sortBy || 'popularity'; // ค่าการจัดเรียง
+
+    const data = await bookService.getBooks({ userId, sortBy, page, limit });
     res.json(data);
   } catch (error) {
     next(error);
   }
 }
+
 export async function getBookById(req, res, next) {
   try {
     const id = req.params.id;
@@ -706,12 +731,11 @@ export const getAiSuggestionForBook = async (req, res) => {
   }
 };
 
-export const createEdition = async (req,res , next)=>{
-    try {
-    const result  = await bookService.postEdition(req.body)
-    res.json(result)
-    } catch (error) {
-        next(error)
-    }
-
-}
+export const createEdition = async (req, res, next) => {
+  try {
+    const result = await bookService.postEdition(req.body);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};

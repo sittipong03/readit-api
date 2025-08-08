@@ -22,6 +22,7 @@ reviewRoute.post(
   validateReview,
   reviewController.createReview
 );
+
 reviewRoute.get("/:bookId", reviewController.getReviewsByBook);
 reviewRoute.put(
   "/:id",
