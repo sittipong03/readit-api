@@ -5,72 +5,63 @@ export async function rateBookService(userId, bookId, rating) {
     throw new Error('Rating must be between 1 and 5.');
   }
 
-  try {
-    const existingRating = await prisma.rating.findUnique({
-      where: {
-        userId_bookId: {
-          userId,
-          bookId
-        }
-      },
+  // ใช้ transaction เพื่อให้แน่ใจว่าทุกอย่างทำงานสำเร็จพร้อมกัน
+  const updatedBookWithRating = await prisma.$transaction(async (tx) => {
+    // 1. สร้างหรืออัปเดต Rating (Upsert)
+    const newRating = await tx.rating.upsert({
+      where: { userId_bookId: { userId, bookId } },
+      update: { rating },
+      create: { userId, bookId, rating },
     });
-    const book = await prisma.book.findUnique({
-      where: {
-        id: bookId
-      },
-      select: {
-        ratingCount: true,
-        averageRating: true,
-      },
+
+    // 2. ดึงข้อมูล rating ทั้งหมดของหนังสือเล่มนี้เพื่อคำนวณใหม่
+    const allRatings = await tx.rating.findMany({
+      where: { bookId: bookId },
+      select: { rating: true }
     });
-    if (!book) {
-      throw new Error('Book not found.');
-    }
-    let updatedRating;
-    let newAverageRating;
-    let newRatingCount = book.ratingCount;
-    if (existingRating) {
-      updatedRating = await prisma.rating.update({
-        where: {
-          id: existingRating.id
-        },
-        data: {
-          rating: rating
-        },
-      });
-      const allRatings = await prisma.rating.findMany({
-        where: {
-          bookId: bookId
-        },
-        select: {
-          rating: true
-        }
-      });
-      const totalRatingsSum = allRatings.reduce((sum, r) => sum + r.rating, 0);
-      newAverageRating = parseFloat((totalRatingsSum / allRatings.length).toFixed(1));
-    } else {
-      updatedRating = await prisma.rating.create({
-        data: {
-          userId,
-          bookId,
-          rating,
-        },
-      });
-      newRatingCount++;
-      const totalRatingsSum = (book.averageRating * book.ratingCount) + rating;
-      newAverageRating = parseFloat((totalRatingsSum / newRatingCount).toFixed(1));
-    }
-    await prisma.book.update({
-      where: {
-        id: bookId
-      },
+    
+    // 3. คำนวณค่าเฉลี่ยและจำนวน rating ใหม่
+    const ratingCount = allRatings.length;
+    const totalRatingsSum = allRatings.reduce((sum, r) => sum + r.rating, 0);
+    const averageRating = parseFloat((totalRatingsSum / ratingCount).toFixed(2)); // เพิ่มความละเอียดเป็น 2 ตำแหน่ง
+
+    // 4. อัปเดตข้อมูลในตาราง Book
+    await tx.book.update({
+      where: { id: bookId },
       data: {
-        ratingCount: newRatingCount,
-        averageRating: newAverageRating,
+        ratingCount: ratingCount,
+        averageRating: averageRating,
       },
     });
-    return updatedRating;
-  } catch (error) {
-    throw error;
-  }
+    
+    // 5. ดึงข้อมูลหนังสือล่าสุดทั้งหมด พร้อมกับ rating ของ user คนปัจจุบัน
+    const finalBookData = await tx.book.findUnique({
+        where: { id: bookId },
+        // Select ข้อมูลทั้งหมดที่ Card ต้องการ
+        select: {
+            id: true,
+            title: true,
+            averageRating: true,
+            ratingCount: true,
+            Author: { select: { name: true } },
+            edition: { 
+                where: { isLatest: true },
+                select: { coverImage: true }
+            },
+            // ดึง rating เฉพาะของ user คนนี้มาด้วย
+            rating: {
+                where: { userId: userId },
+                select: { rating: true }
+            }
+        }
+    });
+
+    if (!finalBookData) {
+        throw new Error('Book not found after update.');
+    }
+
+    return finalBookData;
+  });
+  
+  return updatedBookWithRating;
 }

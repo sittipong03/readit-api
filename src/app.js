@@ -48,7 +48,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/book", bookRoute);
 app.use("/api/tags", tagRoute);
-app.use("/api/rate", ratingRoute);
+app.use("/api/rating", ratingRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/comment", commentRoute);
 app.use("/api/cart", cartRoute);
