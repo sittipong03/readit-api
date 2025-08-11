@@ -12,13 +12,13 @@ import { ShelfType } from "@prisma/client";
 // Search book by AI
 export async function searchBookByAI(req, res, next) {
   try {
-    const userId = req.user?.id; 
+    const userId = req.user?.id;
     const books = req.body;
     // ส่ง userId เข้าไปใน service
-    const data = await bookService.searchBookByAI(books, userId); 
-    res.status(200).json({ 
+    const data = await bookService.searchBookByAI(books, userId);
+    res.status(200).json({
       books: data,
-      pagination: { hasNextPage: false } // AI Search ยังไม่มี pagination
+      pagination: { hasNextPage: false }, // AI Search ยังไม่มี pagination
     });
   } catch (error) {
     next(error);
@@ -86,9 +86,16 @@ export async function getBooks(req, res, next) {
     // รับค่า page, limit, sortBy จาก query string
     const page = parseInt(req.query.page) || 1; // เริ่มที่ 1
     const limit = parseInt(req.query.limit) || 24; // จำนวนข้อมูลต่อหน้า, ค่าเริ่มต้น 24
-    const sortBy = req.query.sortBy || 'popularity'; // ค่าการจัดเรียง
+    const sortBy = req.query.sortBy || "popularity"; // ค่าการจัดเรียง
 
-    const data = await bookService.getBooks({ userId, sortBy, page, limit });
+    let tagIds = [];
+    if (req.query.tags) {
+      tagIds = req.query.tags.split(",");
+    }
+
+    const keyword = req.query.keyword || "";
+
+    const data = await bookService.getBooks({ userId, sortBy, page, limit, tagIds, keyword });
     res.json(data);
   } catch (error) {
     next(error);
@@ -125,6 +132,7 @@ export async function searchKeywordBooks(req, res, next) {
     next(error);
   }
 }
+
 export async function createBook(req, res, next) {
   try {
     const {

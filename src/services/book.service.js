@@ -10,7 +10,8 @@ import { ShelfType } from "@prisma/client";
 // book service section
 
 // Search book by AI
-export async function searchBookByAI(books, userId) { // 1. รับ userId เพิ่ม
+export async function searchBookByAI(books, userId) {
+  // 1. รับ userId เพิ่ม
   const bookResult = await searchBooks(books);
   console.log("bookResult", bookResult);
   const booksArr = bookResult.split(",");
@@ -85,7 +86,7 @@ export async function searchBookByAI(books, userId) { // 1. รับ userId เ
     },
   };
 
-  // 3. ✨ ส่วนสำคัญ: เพิ่มข้อมูล rating ถ้ามี userId ส่งมา ✨
+  // 3. ส่วนสำคัญ: เพิ่มข้อมูล rating ถ้ามี userId ส่งมา 
   if (userId) {
     selectQuery.rating = {
       where: {
@@ -163,7 +164,14 @@ export async function getAllNameBook() {
   });
 }
 
-export async function getBooks({ userId, sortBy, page, limit }) {
+export async function getBooks({
+  userId,
+  sortBy,
+  page,
+  limit,
+  tagIds,
+  keyword,
+}) {
   const skip = (page - 1) * limit;
 
   let orderBy = {};
@@ -181,6 +189,27 @@ export async function getBooks({ userId, sortBy, page, limit }) {
     default:
       orderBy = { ratingCount: "desc" };
       break;
+  }
+
+  // สร้างเงื่อนไขการค้นหา (where clause) แบบไดนามิก
+  const whereClause = {};
+
+  // --- เพิ่มเงื่อนไขการค้นหาจาก keyword ---
+  if (keyword && keyword.trim() !== "") {
+    whereClause.searchKey = {
+      contains: keyword,
+    };
+  }
+
+  // --- เพิ่มเงื่อนไขการ Filter จาก tags ---
+  if (tagIds && tagIds.length > 0) {
+    whereClause.AND = tagIds.map((tagId) => ({
+      bookTag: {
+        some: {
+          tagId: tagId,
+        },
+      },
+    }));
   }
 
   // สร้าง select query พื้นฐาน
@@ -288,24 +317,27 @@ export async function getBooks({ userId, sortBy, page, limit }) {
   // ดึงข้อมูลหนังสือและนับจำนวนทั้งหมดพร้อมกันโดยใช้ transaction
   const [books, totalBooks] = await prisma.$transaction([
     prisma.book.findMany({
+      where: whereClause,
       select: selectQuery,
       orderBy: orderBy,
-      skip: skip,   // ข้ามข้อมูล
-      take: limit,  // เอามาตามจำนวนที่กำหนด
+      skip: skip, 
+      take: limit, 
     }),
-    prisma.book.count() // นับจำนวนหนังสือทั้งหมด
+    prisma.book.count({ 
+      where: whereClause 
+    }), 
   ]);
 
   const totalPages = Math.ceil(totalBooks / limit);
 
   return {
-    books, 
+    books,
     pagination: {
       currentPage: page,
       totalPages: totalPages,
       hasNextPage: page < totalPages,
-      totalBooks: totalBooks
-    }
+      totalBooks: totalBooks,
+    },
   };
 }
 
