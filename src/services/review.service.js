@@ -1,7 +1,8 @@
 import prisma from "../config/prisma.config.js";
+import { updateReviewCounts } from "../utils/updateCounts.util.js";
 
-export async function createReviewService(userId, bookId, title, content, reviewPoint) {
-  // Optional: Check if user already submitted a review
+export async function createReviewService(userId, bookId, title, content) {
+  // Check if user already submitted a review
   console.log("createReviewService userId:");
   console.log(userId);
   const existing = await prisma.review.findFirst({
@@ -15,21 +16,16 @@ export async function createReviewService(userId, bookId, title, content, review
     throw new Error("You have already submitted a review for this book.");
   }
 
-  // Validate review point
-  if (reviewPoint < 1 || reviewPoint > 5) {
-    throw new Error("Review point must be between 1 and 5.");
-  }
-
   // Create the review
-  const review = await prisma.review.create({
-    data: {
-      userId,
-      bookId,
-      title,
-      content,
-      reviewPoint,
-      isApproved: false, // default to false if needed
-    },
+  const review = await prisma.$transaction(async (tx) => {
+    const newReview = await tx.review.create({
+      data: { userId, bookId, title, content },
+    });
+
+    // ใช้ utility function เพื่ออัปเดต counts
+    await updateReviewCounts(tx, { bookId, userId, operation: "increment" });
+
+    return newReview;
   });
 
   return review;
@@ -93,169 +89,8 @@ export async function editReviewService(reviewId, userId, updateData) {
     if (existingReview.userId !== userId) {
       throw new Error("Unauthorized: You can only edit your own reviews.");
     }
-    if (
-      updateData.reviewPoint &&
-      updateData.reviewPoint !== existingReview.reviewPoint
-    ) {
-      await prisma.$transaction(async (prisma) => {
-        const oldReviewPoint = existingReview.reviewPoint;
-        switch (oldReviewPoint) {
-          case 1:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                oneStarCount: {
-                  decrement: 1,
-                },
-              },
-            });
-            break;
-          case 2:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                twoStarCount: {
-                  decrement: 1,
-                },
-              },
-            });
-            break;
-          case 3:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                threeStarCount: {
-                  decrement: 1,
-                },
-              },
-            });
-            break;
-          case 4:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                fourStarCount: {
-                  decrement: 1,
-                },
-              },
-            });
-            break;
-          case 5:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                fiveStarCount: {
-                  decrement: 1,
-                },
-              },
-            });
-            break;
-        }
-        const newReviewPoint = updateData.reviewPoint;
-        switch (newReviewPoint) {
-          case 1:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                oneStarCount: {
-                  increment: 1,
-                },
-              },
-            });
-            break;
-          case 2:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                twoStarCount: {
-                  increment: 1,
-                },
-              },
-            });
-            break;
-          case 3:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                threeStarCount: {
-                  increment: 1,
-                },
-              },
-            });
-            break;
-          case 4:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                fourStarCount: {
-                  increment: 1,
-                },
-              },
-            });
-            break;
-          case 5:
-            await prisma.book.update({
-              where: {
-                id: existingReview.bookId,
-              },
-              data: {
-                fiveStarCount: {
-                  increment: 1,
-                },
-              },
-            });
-            break;
-        }
-        const bookReviews = await prisma.review.findMany({
-          where: {
-            bookId: existingReview.bookId,
-            NOT: {
-              id: reviewId,
-            },
-          },
-        });
-
-        const totalReviewPoints =
-          bookReviews.reduce((sum, r) => sum + r.reviewPoint, 0) +
-          newReviewPoint;
-        const reviewCount = bookReviews.length + 1; // Add the current review back
-        const averageRating =
-          reviewCount > 0
-            ? parseFloat((totalReviewPoints / reviewCount).toFixed(1))
-            : 0;
-
-        await prisma.book.update({
-          where: {
-            id: existingReview.bookId,
-          },
-          data: {
-            averageRating: averageRating,
-          },
-        });
-      });
-    }
     const updatedReview = await prisma.review.update({
-      where: {
-        id: reviewId,
-      },
+      where: { id: reviewId },
       data: updateData,
     });
     return updatedReview;
@@ -279,115 +114,16 @@ export async function deleteReviewService(reviewId, userId) {
       throw new Error("Unauthorized: You can only delete your own reviews.");
     }
 
-    await prisma.$transaction(async (prisma) => {
-      await prisma.review.delete({
-        where: {
-          id: reviewId,
-        },
-      });
-      switch (existingReview.reviewPoint) {
-        case 1:
-          await prisma.book.update({
-            where: {
-              id: existingReview.bookId,
-            },
-            data: {
-              oneStarCount: {
-                decrement: 1,
-              },
-            },
-          });
-          break;
-        case 2:
-          await prisma.book.update({
-            where: {
-              id: existingReview.bookId,
-            },
-            data: {
-              twoStarCount: {
-                decrement: 1,
-              },
-            },
-          });
-          break;
-        case 3:
-          await prisma.book.update({
-            where: {
-              id: existingReview.book,
-            },
-            data: {
-              threeStarCount: {
-                decrement: 1,
-              },
-            },
-          });
-          break;
-        case 4:
-          await prisma.book.update({
-            where: {
-              id: existingReview.bookId,
-            },
-            data: {
-              fourStarCount: {
-                decrement: 1,
-              },
-            },
-          });
-          break;
-        case 5:
-          await prisma.book.update({
-            where: {
-              id: existingReview.bookId,
-            },
-            data: {
-              fiveStarCount: {
-                decrement: 1,
-              },
-            },
-          });
-          break;
-      }
-      const bookReviews = await prisma.review.findMany({
-        where: {
-          bookId: existingReview.bookId,
-        },
-        select: {
-          reviewPoint: true,
-        },
-      });
-      const totalReviewPoints = bookReviews.reduce(
-        (sum, r) => sum + r.reviewPoint,
-        0
-      );
-      const reviewCount = bookReviews.length;
-      const averageRating =
-        reviewCount > 0
-          ? parseFloat((totalReviewPoints / reviewCount).toFixed(1))
-          : 0;
-      await prisma.book.update({
-        where: {
-          id: existingReview.bookId,
-        },
-        data: {
-          reviewCount: reviewCount,
-          averageRating: averageRating,
-        },
-      });
-      await prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          reviewCount: {
-            decrement: 1,
-          },
-        },
-      });
+    await prisma.$transaction(async (tx) => {
+    await tx.review.delete({ where: { id: reviewId } });
+    await updateReviewCounts(tx, { 
+      bookId: existingReview.bookId, 
+      userId, 
+      operation: 'decrement' 
     });
+  });
 
-    return {
-      message: "Review deleted successfully.",
-    };
+    return { message: "Review deleted successfully." };
   } catch (error) {
     throw error;
   }

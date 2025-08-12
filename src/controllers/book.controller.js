@@ -95,7 +95,14 @@ export async function getBooks(req, res, next) {
 
     const keyword = req.query.keyword || "";
 
-    const data = await bookService.getBooks({ userId, sortBy, page, limit, tagIds, keyword });
+    const data = await bookService.getBooks({
+      userId,
+      sortBy,
+      page,
+      limit,
+      tagIds,
+      keyword,
+    });
     res.json(data);
   } catch (error) {
     next(error);
@@ -105,13 +112,28 @@ export async function getBooks(req, res, next) {
 export async function getBookById(req, res, next) {
   try {
     const id = req.params.id;
-    // const doYouKnow = await bookService.aiDoYouKnow(id)
-    const data = await bookService.getBookById(id);
+    // 1. ดึง userId จาก optionalAuthMiddleware (ถ้า user login อยู่)
+    const userId = req.user?.id;
+
+    // 2. ส่ง userId ต่อไปยัง service
+    const data = await bookService.getBookById(id, userId);
+
     if (!data) {
-      createError(404, "Book is not found");
+      return createError(404, "Book is not found");
     }
-    // ต้องปั้นใหม่ ให้สวย ส่ง front end รอดูว่า front ต้องการอะไรไปโชว์บ้าง ควรจะเหมือนกับ getBooks
-    res.json(data);
+
+    // 3. ปรับโครงสร้างข้อมูลก่อนส่งกลับ (สำคัญมาก)
+    // Prisma จะคืนค่า relation มาเป็น Array เสมอ (เช่น rating: [{ rating: 5 }]) แต่ Component ใน Frontend ของเราคาดหวังจะได้รับเป็นตัวเลข (rating: 5) เราจึงต้องแปลงข้อมูลใน Controller ก่อนส่งกลับ
+    const formattedData = { ...data };
+    if (data.rating && data.rating.length > 0) {
+      // แปลงจาก array [{ rating: 5 }] ให้กลายเป็น property `rating: 5`
+      formattedData.rating = data.rating[0].rating;
+    } else {
+      // ถ้า user ยังไม่เคยให้คะแนน ให้ค่าเริ่มต้นเป็น 0
+      formattedData.rating = 0;
+    }
+
+    res.json(formattedData);
   } catch (error) {
     next(error);
   }
@@ -689,7 +711,7 @@ export const getAiSuggestionForBook = async (req, res) => {
       return res.status(400).json({ message: "Book ID is missing" });
     }
 
-    // --- ดึงข้อมูลหนังสือและตรวจสอบแคช (ส่วนนี้ถูกต้องแล้ว) ---
+    // --- ดึงข้อมูลหนังสือและตรวจสอบแคช ---
     const book = await prisma.book.findUnique({
       where: { id },
       select: { title: true, aiSuggestion: true },

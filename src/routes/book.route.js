@@ -31,9 +31,6 @@ bookRoute.post('/searchAI' , optionalAuthMiddleware, bookController.searchBookBy
 bookRoute.get('/:id/ai-suggestion' , optionalAuthMiddleware, bookController.aiDoYouKnow) //Search book by AI
 bookRoute.post('/searchTagAI' , optionalAuthMiddleware, bookController.searchBookTagByAI) 
 
-// Id
-bookRoute.get("/:id", bookController.getBookById);
-
 // tags
 bookRoute.get("/tags", bookController.getTags);
 bookRoute.post("/tags", bookController.createTag); // need authen check admin middleware
@@ -44,7 +41,7 @@ bookRoute.delete("/tags/:id", bookController.deleteTag); // need authen check ad
 bookRoute.get("/", optionalAuthMiddleware, bookController.getBooks);
 bookRoute.post("/", bookController.createBook); // need authen check admin middleware
 bookRoute.get("/search", bookController.searchKeywordBooks);
-bookRoute.get("/:id", bookController.getBookById);
+bookRoute.get("/:id", optionalAuthMiddleware, bookController.getBookById);
 bookRoute.patch("/:id", bookController.updateBook); // need authen check admin middleware
 bookRoute.delete("/:id", bookController.deleteBook); // need authen check admin middleware
 
