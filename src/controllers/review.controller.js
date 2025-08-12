@@ -2,22 +2,26 @@ import createError from "../utils/create-error.util.js";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { rateBookService } from "../services/rating.service.js";
 import prisma from "../config/prisma.config.js";
 import * as dotenv from "dotenv";
 import * as reviewService from "../services/review.service.js";
 dotenv.config();
 
 export async function createReview(req, res) {
-  const { bookId } = req.params;
-  const { title, content, reviewPoint } = req.body;
-
-  // if (!req.user || !req.user.id) {
-  //   return res.status(401).json({ message: "Unauthorized" });
-  // }
-
+  console.log("req.body:");
+  console.log(req.body);
   const userId = req.user.id;
-  console.log('userId', userId)
-
+  console.log("userId", userId);
+  const { bookId } = req.params;
+  const { title, content } = req.body;
+  console.log("bookId");
+  console.log(bookId);
+  console.log("title");
+  console.log(title);
+  console.log("content");
+  console.log(content);
+  
 
   try {
     const review = await reviewService.createReviewService(
@@ -25,7 +29,6 @@ export async function createReview(req, res) {
       bookId,
       title,
       content,
-      reviewPoint
     );
 
     return res.status(201).json({
@@ -35,16 +38,15 @@ export async function createReview(req, res) {
         bookId: review.bookId,
         title: review.title,
         content: review.content,
-        reviewPoint: review.reviewPoint,
         createdAt: review.createdAt,
       },
     });
   } catch (error) {
-    if (error.message === "You have already submitted a review for this book.") {
+    if (
+      error.message === "You have already submitted a review for this book."
+    ) {
       return res.status(409).json({ message: error.message });
-
     }
-
     console.error("Error creating review:", error);
     return res.status(500).json({ message: "Failed to add review." });
   }
@@ -69,7 +71,11 @@ export async function editReview(req, res) {
   const updateData = req.body;
 
   try {
-    const updatedReview = await reviewService.editReviewService(id, userId, updateData);
+    const updatedReview = await reviewService.editReviewService(
+      id,
+      userId,
+      updateData
+    );
 
     return res.status(200).json({
       message: "Review updated successfully",

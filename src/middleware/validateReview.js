@@ -1,7 +1,7 @@
 import createError from "../utils/create-error.util.js";
 
 export function validateReview(req, res, next) {
-  const { title, content, reviewPoint } = req.body;
+  const { title, content } = req.body;
   const { bookId } = req.params;
 
   if (req.method === "POST") {
@@ -20,20 +20,9 @@ export function validateReview(req, res, next) {
         message: "Content is required and must be a non-empty string.",
       });
     }
-    if (
-      reviewPoint === undefined ||
-      typeof reviewPoint !== "number" ||
-      reviewPoint < 1 ||
-      reviewPoint > 5
-    ) {
-      return res.status(400).json({
-        message:
-          "Review point is required and must be an integer between 1 and 5.",
-      });
-    }
   } else if (req.method === "PUT") {
     const updates = req.body;
-    const allowedUpdates = ["title", "content", "reviewPoint"];
+    const allowedUpdates = ["title", "content"];
     const isValidOperation = Object.keys(updates).every((key) =>
       allowedUpdates.includes(key)
     );
@@ -41,17 +30,6 @@ export function validateReview(req, res, next) {
     if (!isValidOperation) {
       return res.status(400).json({
         message: "Invalid updates provided!",
-      });
-    }
-
-    if (
-      updates.reviewPoint !== undefined &&
-      (typeof updates.reviewPoint !== "number" ||
-        updates.reviewPoint < 1 ||
-        updates.reviewPoint > 5)
-    ) {
-      return res.status(400).json({
-        message: "Review point must be an integer between 1 and 5.",
       });
     }
   }
