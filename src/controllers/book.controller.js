@@ -15,10 +15,18 @@ export async function searchBookByAI(req, res, next) {
     const userId = req.user?.id;
     const books = req.body;
     // ส่ง userId เข้าไปใน service
-    const data = await bookService.searchBookByAI(books, userId);
+    const dataFromService = await bookService.searchBookByAI(books, userId);
+
+    const formattedBooks = dataFromService.map((book) => ({
+      ...book,
+      rating: book.rating && book.rating.length > 0 
+        ? book.rating[0].rating 
+        : 0,                   
+    }));
+
     res.status(200).json({
-      books: data,
-      pagination: { hasNextPage: false }, // AI Search ยังไม่มี pagination
+      books: formattedBooks,
+      pagination: { hasNextPage: false },
     });
   } catch (error) {
     next(error);
@@ -95,7 +103,7 @@ export async function getBooks(req, res, next) {
 
     const keyword = req.query.keyword || "";
 
-    const data = await bookService.getBooks({
+    const dataFromService = await bookService.getBooks({
       userId,
       sortBy,
       page,
@@ -103,7 +111,28 @@ export async function getBooks(req, res, next) {
       tagIds,
       keyword,
     });
-    res.json(data);
+
+    console.log("book :");
+    console.log(dataFromService.books[0]);
+    console.log("book.rating :");
+    console.log(dataFromService.books[0].rating.rating);
+
+    const formattedBooks = dataFromService.books.map((book) => {
+      return {
+        ...book,
+        rating: book.rating && book.rating.length > 0
+          ? book.rating[0].rating 
+          : 0,               
+      };
+    });
+
+    console.log("formattedBooks :");
+    console.log(formattedBooks[0]);
+
+    res.json({
+      books: formattedBooks,
+      pagination: dataFromService.pagination,
+    });
   } catch (error) {
     next(error);
   }
