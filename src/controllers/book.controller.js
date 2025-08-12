@@ -111,12 +111,7 @@ export async function getBooks(req, res, next) {
       tagIds,
       keyword,
     });
-
-    console.log("book :");
-    console.log(dataFromService.books[0]);
-    console.log("book.rating :");
-    console.log(dataFromService.books[0].rating.rating);
-
+    
     const formattedBooks = dataFromService.books.map((book) => {
       return {
         ...book,
