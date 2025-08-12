@@ -235,26 +235,6 @@ export async function getBooks({
       },
     },
 
-    //--- FIX: ดึงข้อมูล Review ---
-    review: {
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        reviewPoint: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      take: 5, // ดึงรีวิวล่าสุดมา 5 อัน
-      orderBy: {
-        createdAt: "desc",
-      },
-    },
-
     //--- ดึงข้อมูล Edition ---
     edition: {
       select: {
@@ -310,6 +290,11 @@ export async function getBooks({
         id: true,
         title: true,
         content: true,
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     };
   }

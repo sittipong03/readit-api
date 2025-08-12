@@ -39,10 +39,10 @@ export async function authMiddleware(req, res, next) {
     if (!user) {
       return next(createError(401, "User from token not found in database."));
     }
-    
+
     // ส่งต่อข้อมูล user ทั้งหมดไปกับ request
     req.user = user;
-    
+
     next();
   } catch (error) {
     // catch block นี้จะดักจับ error ได้ทั้งหมด (เช่น token หมดอายุ)
@@ -65,7 +65,7 @@ export const optionalAuthMiddleware = async (req, res, next) => {
 
     // ถ้าไม่มี Token ก็แค่เรียก next() แล้วจบการทำงานทันที
     if (!token) {
-      return next(); 
+      return next();
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
@@ -96,13 +96,11 @@ export const optionalAuthMiddleware = async (req, res, next) => {
   }
 };
 
-
 export async function isReviewOwner(req, res, next) {
   const { id } = req.params;
   const userId = req.user.id;
 
   try {
-    const prisma = require("../../prisma").createPrismaClient();
     const review = await prisma.review.findUnique({
       where: {
         id: id,
